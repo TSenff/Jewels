@@ -7,8 +7,8 @@ LFLAG= $(ALLEGRO)
 all : game.o auxiliar.o board.o
 	$(CC) $(CFLAG)  game.o auxiliar.o board.o -o jewels $(LFLAG)
 
-teste : main.c board.o
-	$(CC) $(CFLAG)  main.c board.o -o teste $(LFLAG)
+teste : main.c board.o auxiliar.o
+	$(CC) $(CFLAG)  main.c board.o auxiliar.o -o teste $(LFLAG)
 
 
 game.o : game.c auxiliar.h board.h
