@@ -9,6 +9,6 @@ Para utilizar o display em outras bibliotecas eu tenho que enviar o ponteiro par
 
 
 # A fazer
-Otimizar checagem de trios para meio e para lados, Testes são repetidos 
-Otimizar Verificagem de fim de jogo
+Otimizar verificação de trios para meio e para lados, Testes são repetidos 
+Otimizar verificação de fim de jogo
 Reescrever estoura usando check_vertical e check_horizontal

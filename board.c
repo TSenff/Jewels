@@ -161,7 +161,7 @@ void destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
                 break;
             board[i][column] = EMPTY;    
         }
-        cai(board,i,column);
+        cai(board,row,column);
     }
 
     /* Direita  */
@@ -176,6 +176,7 @@ void destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
 }
 
 int valid_move(JEWEL_TYPE **board, int row, int column, int direction,JEWEL_TYPE jt){
+    
     /* Verifica se a posição existe */
     int n_col = column, n_row = row;
     switch (direction){
@@ -194,6 +195,7 @@ int valid_move(JEWEL_TYPE **board, int row, int column, int direction,JEWEL_TYPE
     }    
     if ( (n_col > 7 || n_col < 0 ) && (n_row > 7 || n_row < 0) )
         return 0;
+    
     /* Verifica se existe +3*/
     int *estoura_res = estoura(board,row,column,direction,jt);
 
@@ -201,10 +203,10 @@ int valid_move(JEWEL_TYPE **board, int row, int column, int direction,JEWEL_TYPE
     int temp  = board[row][column];
     board[row][column] = board[n_row][n_col];
     board[n_row][n_col] = temp;
-
     destroi(board,n_row,n_col,estoura_res,jt);
+
     if(estoura_res = estoura(board,row,column,-1*direction,board[row][column]))
-        destroi(board,row,column,-1*direction,board[row][column]);
+        destroi(board,row,column,estoura_res,board[row][column]);
     
     return 1;
 }
