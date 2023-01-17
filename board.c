@@ -47,7 +47,7 @@ void printf_board(JEWEL_TYPE **board){
 
 int* estoura(JEWEL_TYPE **board, int row, int column,int direction, JEWEL_TYPE jt){
     /*   res = [Esquerda,cima,baixo,direita]  (0 não estoura, 1 estoura na direção ) */
-    int *res = malloc(sizeof(int)*4);
+    int *res = calloc(4,sizeof(int)*4);
 
     /* Movimento Horizontal */
     if(direction != UP  && direction != DOWN){
@@ -62,7 +62,7 @@ int* estoura(JEWEL_TYPE **board, int row, int column,int direction, JEWEL_TYPE j
                 res[2] = 1;
             /* Verifica reto Cima */
             if (row-2 > -1 && jt == board[row-1][column] && jt == board[row-2][column])
-                res[1] = 2;
+                res[1] = 1;
         }
     }
     /* Movimento Vertical */
@@ -89,7 +89,7 @@ int* estoura(JEWEL_TYPE **board, int row, int column,int direction, JEWEL_TYPE j
     switch (direction){
         case UP:
                 if (row-2 > -1 && jt == board[row-1][column] && jt == board[row-2][column])
-                    res[1] = 2;
+                    res[1] = 1;
             break;
         case DOWN:
                 if (row+2 < 8 && jt == board[row+1][column] && jt == board[row+2][column])
@@ -120,14 +120,13 @@ void switch_jewels(JEWEL_TYPE **board,int r1, int c1,int r2, int c2){
 
 void cai(JEWEL_TYPE **board,int row, int column){
     /* Move todos os espaços vazios para o topo*/
-    for (int i = row; i < 8; i++){
-        if(board[i][column] != EMPTY)
-            break;
+    while(board[row][column] != EMPTY){
 
-        for (int j = i; j-1 > -1; j--)
+        /* Leva o espaço vazio para o topo */
+        for (int j = row; j-1 > -1; j--)
             switch_jewels(board,j,column,j-1,column);
         
-        /* Preenche os espaços vazio */
+        /* Preenche o espaço vazio no topo*/
         board[0][column] = rand_jewel();
     }
 }
@@ -136,7 +135,8 @@ void destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
     int i;
     /* Esquerda */
     if (directions[0]){
-        for (i = column; i > -1 ; i--){
+        printf("Destroindo ESQUERDA\n");
+        for (i = column-1; i > -1 ; i--){
             if (board[row][i] != jt)
                 break;
             board[row][i] = EMPTY;    
@@ -146,6 +146,7 @@ void destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
     
     /* Cima     */    
     if (directions[1]){
+        printf("Destroindo CIMA\n");
         for (i = row; i > -1 ; i--){
             if (board[i][column] != jt)
                 break;
@@ -156,6 +157,7 @@ void destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
     
     /* Baixo    */    
     if (directions[2]){
+        printf("Destroindo BAIXO\n");
         for (i = row; i < 8; i++){
             if (board[i][column] != jt)
                 break;
@@ -166,6 +168,7 @@ void destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
 
     /* Direita  */
     if (directions[3]){
+        printf("Destroindo DIREITA\n");
         for (int i = column; i < 8; i++){
             if (board[row][i] != jt)
                 break;
@@ -175,16 +178,17 @@ void destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
     }
 }
 
+/* Faz o movimento de uma pedra respeitando as normas do jogo*/
 int valid_move(JEWEL_TYPE **board, int row, int column, int direction,JEWEL_TYPE jt){
     
     /* Verifica se a posição existe */
     int n_col = column, n_row = row;
     switch (direction){
         case UP:
-            n_row++;
+            n_row--;
             break;
         case DOWN:
-            n_row--;
+            n_row++;
             break;
         case RIGHT:
             n_col++;
@@ -197,14 +201,16 @@ int valid_move(JEWEL_TYPE **board, int row, int column, int direction,JEWEL_TYPE
         return 0;
     
     /* Verifica se existe +3*/
-    int *estoura_res = estoura(board,row,column,direction,jt);
+    int *estoura_res = estoura(board,n_row,n_col,direction,jt);
 
     /* Faz a troca */
     int temp  = board[row][column];
     board[row][column] = board[n_row][n_col];
     board[n_row][n_col] = temp;
+    printf("%d / %d / %d / %d \n",estoura_res[0],estoura_res[1],estoura_res[2],estoura_res[3]);
     destroi(board,n_row,n_col,estoura_res,jt);
 
+    /* Verifica se estoura na peça que foi movida a força */
     if(estoura_res = estoura(board,row,column,-1*direction,board[row][column]))
         destroi(board,row,column,estoura_res,board[row][column]);
     

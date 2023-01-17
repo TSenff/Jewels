@@ -20,6 +20,8 @@ void draw_board(float x1, float y1, float x2, float y2, int **board);
 
 void check_move(JEWEL_TYPE **board);
 
+int valid_move(JEWEL_TYPE **board, int row, int column, int direction,JEWEL_TYPE jt);
+
 int check_end(JEWEL_TYPE **board);
 
 void printf_board(JEWEL_TYPE **board);
