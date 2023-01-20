@@ -17,7 +17,7 @@ int main(){
     }
     */
     int row, collum, direction;
-    char t[10];
+    char *t = malloc(sizeof(char)*10);
     JEWEL_TYPE **b = create_board();
     fill_board(b);
     validate_start(b);
@@ -27,7 +27,7 @@ int main(){
         
         scanf("%d",&row);
         scanf("%d",&collum);
-        scanf("%s",&t);
+        scanf("%s",t);
         switch(t[2]){
             case 'D':
                 direction = -2;
@@ -48,6 +48,7 @@ int main(){
         valid_move(b,row,collum,direction,b[row][collum]);
         printf_board(b);
     }
+    free(t);
     
     return 0;
 }

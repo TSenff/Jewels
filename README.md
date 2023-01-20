@@ -14,4 +14,5 @@ Otimizar verificação de fim de jogo
 Reescrever estoura usando check_vertical e check_horizontal
 
 # Problemas 
-Cai não funciona quando um movimento gera duas destruiçoes distintas
+Cai não funciona quando um movimento gera duas destruiçoes distintas que estão empilhadas
+É possivel mover sem que ocorra a destruição 

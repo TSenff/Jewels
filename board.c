@@ -174,7 +174,7 @@ void destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
     /* Esquerda */
     if (directions[0]){
         printf("Destruindo ESQUERDA\n");
-        for (i = column-1; i > -1 ; i--){
+        for (i = column; i > -1 ; i--){
             if (board[row][i] != jt)
                 break;
             board[row][i] = EMPTY;    
@@ -256,7 +256,7 @@ int valid_move(JEWEL_TYPE **board, int row, int column, int direction,JEWEL_TYPE
     destroi(board,n_row,n_col,estoura_res,jt);
 
     /* Verifica se estoura na peça que foi movida a força */
-    if(estoura_res = estoura(board,row,column,-1*direction,board[row][column]))
+    if( (estoura_res = estoura(board,row,column,-1*direction,board[row][column])) )
         destroi(board,row,column,estoura_res,board[row][column]);
     
     return 1;
