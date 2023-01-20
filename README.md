@@ -16,3 +16,5 @@ Reescrever estoura usando check_vertical e check_horizontal
 # Problemas 
 Cai não funciona quando um movimento gera duas destruiçoes distintas que estão empilhadas
 É possivel mover sem que ocorra a destruição 
+Pedras em queda não calculam estouro
+Tirar funçao cai de dentro da funçao destroi

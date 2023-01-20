@@ -246,19 +246,27 @@ int valid_move(JEWEL_TYPE **board, int row, int column, int direction,JEWEL_TYPE
         return 0;
     
     /* Verifica se existe +3*/
-    int *estoura_res = estoura(board,n_row,n_col,direction,jt);
+    int *estoura_pri = estoura(board,n_row,n_col,direction,jt);
+    int *estoura_aux = estoura(board,row,column,-1*direction,board[n_row][n_col]);
+    
+    if( !(estoura_aux[0] || estoura_aux[1] || estoura_aux[2] || estoura_aux[3]) && !(estoura_pri[0] || estoura_pri[1] || estoura_pri[2] || estoura_pri[3]) )
+        return 0;
 
     /* Faz a troca */
     int temp  = board[row][column];
     board[row][column] = board[n_row][n_col];
     board[n_row][n_col] = temp;
-    printf("%d / %d / %d / %d \n",estoura_res[0],estoura_res[1],estoura_res[2],estoura_res[3]);
-    destroi(board,n_row,n_col,estoura_res,jt);
 
-    /* Verifica se estoura na peça que foi movida a força */
-    if( (estoura_res = estoura(board,row,column,-1*direction,board[row][column])) )
-        destroi(board,row,column,estoura_res,board[row][column]);
+    printf("%d / %d / %d / %d \n",estoura_pri[0],estoura_pri[1],estoura_pri[2],estoura_pri[3]);
     
+    if(direction == DOWN){
+        destroi(board,n_row,n_col,estoura_pri,jt);
+        destroi(board,row,column,estoura_aux,board[row][column]);
+    }
+    else{    
+        destroi(board,n_row,n_col,estoura_pri,jt);
+        destroi(board,row,column,estoura_aux,board[row][column]);
+    }
     return 1;
 }
 
