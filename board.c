@@ -4,6 +4,16 @@
 #include <stdlib.h>
 #include <time.h>
 
+
+#define COLRED   "\x1B[31m"
+#define COLGRE   "\x1B[32m"
+#define COLYEL   "\x1B[33m"
+#define COLLBL   "\x1B[34m"
+#define COLMAG   "\x1B[35m"
+#define RESET "\x1B[37m"//"\x1B[0m"
+
+
+
 JEWEL_TYPE** create_board(){
     JEWEL_TYPE **board = (JEWEL_TYPE**)malloc(sizeof(JEWEL_TYPE*)*8);
     if ( board == NULL )
@@ -33,11 +43,32 @@ void fill_board(JEWEL_TYPE **board){
 
 void printf_board(JEWEL_TYPE **board){
     for (int i = 0; i < 8; i++){
+        printf("                ");
         for (int j = 0; j < 8; j++){
-            printf("%d ",board[i][j]);
+            switch(board[i][j]){
+                case RED:
+                    printf(COLRED "%d ",board[i][j]);
+                    break;
+                case YELLOW:
+                    printf(COLYEL "%d ",board[i][j]);
+                    break;
+                case BLUE:
+                    printf(COLLBL "%d ",board[i][j]);
+                    break;
+                case GREEN:
+                    printf(COLGRE "%d ",board[i][j]);
+                    break;
+                case MAGENTA:
+                    printf(COLMAG "%d ",board[i][j]);
+                    break;
+                default:
+                    printf( "%d ",board[i][j]);
+            }
         }
-        printf("\n");
+        printf("\n" RESET);
     }
+    printf("\n");
+
 }
 
 #define UP  1
@@ -120,7 +151,12 @@ void switch_jewels(JEWEL_TYPE **board,int r1, int c1,int r2, int c2){
 
 void cai(JEWEL_TYPE **board,int row, int column){
     /* Move todos os espaços vazios para o topo*/
-    while(board[row][column] != EMPTY){
+
+
+    printf("Caindo em [row = %i, Collum %i]\n",row,column);
+
+
+    while(board[row][column] == EMPTY){
 
         /* Leva o espaço vazio para o topo */
         for (int j = row; j-1 > -1; j--)
@@ -128,6 +164,8 @@ void cai(JEWEL_TYPE **board,int row, int column){
         
         /* Preenche o espaço vazio no topo*/
         board[0][column] = rand_jewel();
+        printf("Nova joia na Coluna %i do tipo %i\n",column,board[0][column]);
+
     }
 }
 
@@ -135,7 +173,7 @@ void destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
     int i;
     /* Esquerda */
     if (directions[0]){
-        printf("Destroindo ESQUERDA\n");
+        printf("Destruindo ESQUERDA\n");
         for (i = column-1; i > -1 ; i--){
             if (board[row][i] != jt)
                 break;
@@ -146,29 +184,36 @@ void destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
     
     /* Cima     */    
     if (directions[1]){
-        printf("Destroindo CIMA\n");
+        printf("Destruindo CIMA\n");
+        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
+
         for (i = row; i > -1 ; i--){
             if (board[i][column] != jt)
                 break;
             board[i][column] = EMPTY;    
         }
-        cai(board,i,column);
+        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
+        cai(board,row,column);
     }
     
     /* Baixo    */    
     if (directions[2]){
-        printf("Destroindo BAIXO\n");
+        printf("Destruindo BAIXO\n");
+        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
+
         for (i = row; i < 8; i++){
+            printf("Esvaziando  em [row = %i, Collum %i]\n",i,column);
+
             if (board[i][column] != jt)
                 break;
             board[i][column] = EMPTY;    
         }
-        cai(board,row,column);
+        cai(board,i-1,column);
     }
 
     /* Direita  */
     if (directions[3]){
-        printf("Destroindo DIREITA\n");
+        printf("Destruindo DIREITA\n");
         for (int i = column; i < 8; i++){
             if (board[row][i] != jt)
                 break;

@@ -12,3 +12,6 @@ Para utilizar o display em outras bibliotecas eu tenho que enviar o ponteiro par
 Otimizar verificação de trios para meio e para lados, Testes são repetidos 
 Otimizar verificação de fim de jogo
 Reescrever estoura usando check_vertical e check_horizontal
+
+# Problemas 
+Cai não funciona quando um movimento gera duas destruiçoes distintas

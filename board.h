@@ -6,7 +6,8 @@ typedef enum JEWEL_TYPE{
     RED = 0,
     YELLOW,
     BLUE,
-    GREEN
+    GREEN,
+    MAGENTA
 }JEWEL_TYPE;
 
 
