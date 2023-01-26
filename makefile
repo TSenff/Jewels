@@ -7,8 +7,24 @@ LFLAG= $(ALLEGRO)
 all : game.o auxiliar.o board.o
 	$(CC) $(CFLAG)  game.o auxiliar.o board.o -o jewels $(LFLAG)
 
-teste : main.c board.o auxiliar.o
-	$(CC) $(CFLAG)  main.c board.o auxiliar.o -o teste $(LFLAG)
+#Outros metodos de compilar
+
+
+# Area para teste, remover depois 
+teste : main.o board.o auxiliar.o
+	$(CC) $(CFLAG)  main.0 board.o auxiliar.o -o teste $(LFLAG)
+
+
+# Roda o jogo sem interface grafica 
+terminal : terminal.o board.o auxiliar.o
+	$(CC) $(CFLAG)  terminal.o board.o auxiliar.o -o teste $(LFLAG)
+
+
+
+# Objetos 
+terminal.o : terminal.c board.h auxiliar.h
+	$(CC) -c $(CFLAG)  terminal.c 
+
 
 
 game.o : game.c auxiliar.h board.h

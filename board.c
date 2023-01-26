@@ -12,6 +12,10 @@
 #define COLMAG   "\x1B[35m"
 #define RESET "\x1B[37m"//"\x1B[0m"
 
+#define UP  1
+#define DOWN -1
+#define RIGHT 2
+#define LEFT -2
 
 
 JEWEL_TYPE** create_board(){
@@ -43,43 +47,96 @@ void fill_board(JEWEL_TYPE **board){
 
 void printf_board(JEWEL_TYPE **board){
     for (int i = 0; i < 8; i++){
-        printf("                ");
+        printf("               #|");
+        printf("-------------------------------|\n");
+        printf("               %i",i);
+
         for (int j = 0; j < 8; j++){
             switch(board[i][j]){
                 case RED:
-                    printf(COLRED "%d ",board[i][j]);
+                    printf(RESET "|");
+                    printf(COLRED " %d ",board[i][j]);
                     break;
                 case YELLOW:
-                    printf(COLYEL "%d ",board[i][j]);
+                    printf(RESET "|");
+                    printf(COLYEL " %d ",board[i][j]);
                     break;
                 case BLUE:
-                    printf(COLLBL "%d ",board[i][j]);
+                    printf(RESET "|");
+                    printf(COLLBL " %d ",board[i][j]);
                     break;
                 case GREEN:
-                    printf(COLGRE "%d ",board[i][j]);
+                    printf(RESET "|");
+                    printf(COLGRE " %d ",board[i][j]);
                     break;
                 case MAGENTA:
-                    printf(COLMAG "%d ",board[i][j]);
+                    printf(RESET "|");
+                    printf(COLMAG " %d ",board[i][j]);
                     break;
                 default:
-                    printf( "%d ",board[i][j]);
+                    printf(RESET "|");
+                    printf(RESET " %d ",board[i][j]);
             }
         }
-        printf("\n" RESET);
+        printf(RESET "|\n" );
     }
+    printf("                |-------------------------------|\n");
+    printf("                # 0 # 1 # 2 # 3 # 4 # 5 # 6 # 7 #\n");
     printf("\n");
 
 }
 
-#define UP  1
-#define DOWN -1
-#define RIGHT 2
-#define LEFT -2
+
+/* Verifica trio na vertical */
+int check_trio_vertical(JEWEL_TYPE **board, int row, int column){
+    JEWEL_TYPE jt = board[row][column];
+    if (jt == EMPTY)
+        return 0;
+    
+    if (row-1 > -1 && row+1 < 8 && jt == board[row+1][column] && jt == board[row-1][column]){
+        return 1;
+    }
+    else{
+        /* Verifica baixo */
+        if (row+2 < 8 && jt == board[row+1][column] && jt == board[row+2][column])
+            return 2;
+        /* Verifica cima */
+        if (row-2 > -1 && jt == board[row-1][column] && jt == board[row-2][column])
+            return 3;
+    }   
+    return 0;
+}
+
+int check_trio_horizontal(JEWEL_TYPE **board, int row, int column){
+    JEWEL_TYPE jt = board[row][column];
+    if (jt == EMPTY)
+        return 0;    
+    if (column-1 > -1 && column+1 < 8 && jt == board[row][column+1] && jt == board[row][column-1]){
+        return 1;
+    }
+    else{
+        /* Verifica reto Direira */
+        if (column+2 < 8 && jt == board[row][column+1] && jt == board[row][column+2]){
+            return 2;
+        }
+        /* Verifica reto Esquerda */
+        if (column-2 > -1 && jt == board[row][column-1] && jt == board[row][column-2]){
+            return 3;
+        }
+    }   
+    return 0;
+}
 
 int* estoura(JEWEL_TYPE **board, int row, int column,int direction, JEWEL_TYPE jt){
     /*   res = [Esquerda,cima,baixo,direita]  (0 não estoura, 1 estoura na direção ) */
     int *res = calloc(4,sizeof(int)*4);
+    if (res == NULL)
+        return NULL;
 
+    if (jt == EMPTY){
+        return res;
+    }
+    
     /* Movimento Horizontal */
     if(direction != UP  && direction != DOWN){
         /* Verifica se esta no meio*/
@@ -148,79 +205,181 @@ void switch_jewels(JEWEL_TYPE **board,int r1, int c1,int r2, int c2){
     board[r1][c1] = board[r2][c2];
     board[r2][c2] = temp;
 }
-
-void cai(JEWEL_TYPE **board,int row, int column){
-    /* Move todos os espaços vazios para o topo*/
-
-
-    printf("Caindo em [row = %i, Collum %i]\n",row,column);
-
-
-    while(board[row][column] == EMPTY){
-
-        /* Leva o espaço vazio para o topo */
-        for (int j = row; j-1 > -1; j--)
-            switch_jewels(board,j,column,j-1,column);
-        
-        /* Preenche o espaço vazio no topo*/
-        board[0][column] = rand_jewel();
-        printf("Nova joia na Coluna %i do tipo %i\n",column,board[0][column]);
-
+void refill(JEWEL_TYPE **board, int *info_queda){
+    int j;
+    for (int i = 0; i < 8; i++){
+        if(info_queda[i]){
+            j=0;
+            while (board[j][i] == EMPTY){
+                board[j][i] = rand_jewel();    
+                printf("Nova joia na Coluna %i do tipo %i\n",i,board[j][i]);
+                j++;
+            }
+        }     
     }
 }
 
-void destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE jt){
+int max(int a, int b){
+    if(a < b)
+        return b;
+    return a;
+}
+
+void cai(JEWEL_TYPE **board,int *info_queda){
+    /* Move todos os espaços vazios para o topo*/
+    for (int i = 0; i < 8; i++){    
+        if (info_queda[i]){
+            while(info_queda[i]-2 > -1&& board[info_queda[i]-2][i] != EMPTY && board[info_queda[i]-1][i] == EMPTY){
+                printf("Caindo em [row = %i, Collum %i]\n",info_queda[i]-1,i);
+
+                /* Leva o espaço vazio para o topo */
+                for (int j = info_queda[i]-1; j-1 > -1; j--)
+                    switch_jewels(board,j,i,j-1,i);
+            }   
+        }
+        
+    }
+}
+
+int* destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE jt){
+
+    int *queda = calloc(8,sizeof(int));
+    if(queda == NULL)
+        return NULL;
+    
+    if (jt == EMPTY){
+        return queda;
+    }
+    
+    if ( !(directions[0] || directions[1] || directions[2]|| directions[3]) )
+        return queda;
+
+
+
     int i;
+
     /* Esquerda */
     if (directions[0]){
-        printf("Destruindo ESQUERDA\n");
-        for (i = column; i > -1 ; i--){
+        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
+        for (i = column-1; i > -1 ; i--){
             if (board[row][i] != jt)
                 break;
-            board[row][i] = EMPTY;    
-            cai(board,row,i);
-        }
-    }
-    
-    /* Cima     */    
-    if (directions[1]){
-        printf("Destruindo CIMA\n");
-        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
-
-        for (i = row; i > -1 ; i--){
-            if (board[i][column] != jt)
-                break;
-            board[i][column] = EMPTY;    
-        }
-        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
-        cai(board,row,column);
-    }
-    
-    /* Baixo    */    
-    if (directions[2]){
-        printf("Destruindo BAIXO\n");
-        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
-
-        for (i = row; i < 8; i++){
             printf("Esvaziando  em [row = %i, Collum %i]\n",i,column);
-
-            if (board[i][column] != jt)
-                break;
-            board[i][column] = EMPTY;    
+            board[row][i] = EMPTY; 
+            queda[i]=row+1;   
         }
-        cai(board,i-1,column);
     }
 
     /* Direita  */
     if (directions[3]){
-        printf("Destruindo DIREITA\n");
-        for (int i = column; i < 8; i++){
+        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
+
+        for (i = column+1; i < 8; i++){
+            printf("Esvaziando  em [row = %i, Collum %i]\n",i,column);
+
             if (board[row][i] != jt)
                 break;
             board[row][i] = EMPTY;
-            cai(board,row,i);
+            queda[i]=row+1;   
         }
     }
+
+    
+    /* Cima     */    
+    if (directions[1]){
+        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
+        queda[column]=row+1;
+        for (i = row-1; i > -1 ; i--){
+            if (board[i][column] != jt)
+                break;
+            printf("Esvaziando  em [row = %i, Collum %i]\n",i,column);
+            board[i][column] = EMPTY;    
+        }
+    }
+    
+    /* Baixo    */    
+    if (directions[2]){
+        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
+
+        for (i = row+1; i < 8; i++){
+            if (board[i][column] != jt)
+                break;
+            printf("Esvaziando  em [row = %i, Collum %i]\n",i,column);
+            board[i][column] = EMPTY;   
+            queda[column]=i+1;   
+        }
+    }
+
+    if (!directions[2])
+        queda[column] = row+1;
+    
+    board[row][column] = EMPTY;
+    return queda;   
+}
+
+
+int resolve_movidos(JEWEL_TYPE **board, int *info_queda){
+    int *estoura   = calloc(4,sizeof(int)); 
+    if(estoura == NULL)
+        return -1;
+    int *queda = calloc(8,sizeof(int)); 
+    if (queda == NULL)
+        return -1;
+    int  *queda_aux, flag = 0;
+
+    for (int i = 0; i < 8; i++){
+        if (info_queda[i]){
+            for (int j = info_queda[i]-1; j > -1; j--){
+                switch (check_trio_vertical(board,j,i)){
+                case 1:
+                    estoura[1] = 1;
+                    estoura[2] = 1;
+                    break;
+                case 2:
+                    estoura[1] = 0;
+                    estoura[2] = 1;           
+                    break;
+                case 3:
+                    estoura[1] = 1;
+                    estoura[2] = 0;
+                    break;
+                case 0:
+                    break;
+                }
+
+                switch (check_trio_horizontal(board,j,i)){
+                case 1:
+                    estoura[0] = 1;
+                    estoura[3] = 1;
+                    break;
+                case 2:
+                    estoura[0] = 0;
+                    estoura[3] = 1;           
+                    break;
+                case 3:
+                    estoura[0] = 1;
+                    estoura[3] = 0;
+                    break;
+                case 0:
+                    break;
+                }
+
+                if(estoura[0] || estoura[1] || estoura[2] || estoura[3] ){
+                    flag = 1;
+                    queda_aux = destroi(board,j,i,estoura,board[j][i]);
+                    for (int i = 0; i < 8; i++)
+                        queda[i] = max(queda_aux[i],queda[i]); 
+                }
+            }
+        }
+    }
+    if (flag){
+        cai(board,queda);
+        refill(board,queda);
+        printf_board(board);
+        return resolve_movidos(board,queda);
+    }
+    return 0;
 }
 
 /* Faz o movimento de uma pedra respeitando as normas do jogo*/
@@ -259,51 +418,79 @@ int valid_move(JEWEL_TYPE **board, int row, int column, int direction,JEWEL_TYPE
 
     printf("%d / %d / %d / %d \n",estoura_pri[0],estoura_pri[1],estoura_pri[2],estoura_pri[3]);
     
+    /* Esvazia */   
+    int *queda_pri = destroi(board,row,column,estoura_aux,board[row][column]);
+    int *queda_aux = destroi(board,n_row,n_col,estoura_pri,jt);
+    
+    printf_board(board);
+    /* Derruba vazios */
     if(direction == DOWN){
-        destroi(board,n_row,n_col,estoura_pri,jt);
-        destroi(board,row,column,estoura_aux,board[row][column]);
+        cai(board,queda_aux);
+        cai(board,queda_pri);
     }
-    else{    
-        destroi(board,n_row,n_col,estoura_pri,jt);
-        destroi(board,row,column,estoura_aux,board[row][column]);
+    else{
+        cai(board,queda_pri);
+        cai(board,queda_aux);
+    }
+    printf("------\n");
+
+     printf("[0 1 2 3 4 5 6 7  ]\n");
+    printf("[%i %i %i %i %i %i %i %i ]\n",queda_pri[0],queda_pri[1],queda_pri[2],queda_pri[3],queda_pri[4],queda_pri[5],queda_pri[6],queda_pri[7]);
+
+    /* Cria novos */
+    for (int i = 0; i < 8; i++)
+        queda_pri[i] = max(queda_aux[i],queda_pri[i]);    
+    
+    printf("------\n");
+    printf("[0 1 2 3 4 5 6 7  ]\n");
+    printf("[%i %i %i %i %i %i %i %i ]\n",queda_pri[0],queda_pri[1],queda_pri[2],queda_pri[3],queda_pri[4],queda_pri[5],queda_pri[6],queda_pri[7]);
+    
+    refill(board,queda_pri);
+    printf("POW\n");
+    printf_board(board);
+
+    /* Verifica os que se moveram */
+    // resolve_movidos(board,queda_pri);
+    return 1;
+}
+ int explode_trio(JEWEL_TYPE **board,int row, int col,){
+
+ }
+
+
+/* Garante que não exista nenhum trio ja formado */
+int resolve_movement(JEWEL_TYPE **board){
+    /*
+        Como a busca por trios é feita: 
+            X = ignorado
+            V = Verifica na vertical
+            H = Verifica na horizontal
+            A = Verifica em ambos (H e V) 
+
+        X X H X X H X X 
+        X X H X X H X X 
+        V V A V V A V V 
+        X X H X X H X X 
+        X X H X X H X X 
+        V V A V V A v V 
+        X X H X X H X X 
+        X X H X X H X X 
+    
+    */
+    int res;
+    for (int i = 0; i < 8; i++){
+        if( (res = check_trio_horizontal(board,i,2)) )
+            explode_trio(board,i,2);
+        if((res = check_trio_horizontal(board,i,5)))
+            explode_trio(board,i,5);
+        if(( res = check_trio_vertical(board,2,i)))
+            explode_trio(board,2,i);
+        if((res = check_trio_vertical(board,5,i)))
+            explode_trio(board,5,i);
     }
     return 1;
 }
 
-/* Verifica trio na vertical */
-int check_trio_vertical(JEWEL_TYPE **board, int row, int column){
-    JEWEL_TYPE jt = board[row][column];
-    if (row-1 > -1 && row+1 < 8 && jt == board[row+1][column] && jt == board[row-1][column]){
-        return 1;
-    }
-    else{
-        /* Verifica direita */
-        if (row+2 < 8 && jt == board[row+1][column] && jt == board[row+2][column])
-            return 1;
-        /* Verifica esquerda */
-        if (row-2 > -1 && jt == board[row-1][column] && jt == board[row-2][column])
-            return 1;
-    }   
-    return 0;
-}
-
-int check_trio_horizontal(JEWEL_TYPE **board, int row, int column){
-    JEWEL_TYPE jt = board[row][column];
-    if (column-1 > -1 && column+1 < 8 && jt == board[row][column+1] && jt == board[row][column-1]){
-        return 1;
-    }
-    else{
-        /* Verifica reto Direira */
-        if (column+2 < 8 && jt == board[row][column+1] && jt == board[row][column+2]){
-            return 1;
-        }
-        /* Verifica reto Esquerda */
-        if (column-2 > -1 && jt == board[row][column-1] && jt == board[row][column-2]){
-            return 1;
-        }
-    }   
-    return 0;
-}
 
 int break_trio(JEWEL_TYPE **board, int row, int column){
     for (int i = 0; i < 5; i++){
@@ -482,3 +669,70 @@ int check_end(JEWEL_TYPE **board){
     return 1;
    
 }
+int explode_trio(JEWEL_TYPE **board , int row, int col, int *direction){
+    destroi(board,row,col,board[row][column], direction);
+    cai();
+    refill();
+
+    return 0;
+}
+
+void res_destroi_cons(int **res1 , int **res2){
+
+    for(int i = 0; i < 8, i++){
+            if(res1[i] < res2[i])
+                res1[i] = res2;
+    }
+}
+
+int resolve_movement(JEWEL_TYPE **b){
+
+    /*
+        Como a busca por trios é feita: 
+            X = ignorado
+            V = Verifica na vertical
+            H = Verifica na horizontal
+            A = Verifica em ambos (H e V) 
+        X X H X X H X X 
+        X X H X X H X X 
+        V V A V V A V V 
+        X X H X X H X X 
+        X X H X X H X X 
+        V V A V V A v V 
+        X X H X X H X X 
+        X X H X X H X X 
+    
+    */
+
+    int *res_queda = calloc(8,sizeof(int));
+    if(res_queda == NULL)
+        return 1;
+
+    int *res_aux, direction;
+
+
+    for (int i = 0; i < 8; i++){
+        if( (direction = check_trio_horizontal(board,i,2)) ){
+            res_aux = destroi(board,i,2);
+            res_destroi_cons(res_queda, res_aux);
+        }
+        if( (direction = check_trio_horizontal(board,i,5)) ){
+            res_aux = destroi(board,i,5);
+            res_destroi_cons(res_queda, res_aux);
+        }
+        if( (direction = check_trio_vertical(board,2,i)) ){
+            res_aux = destroi(board,2,i);
+            res_destroi_cons(res_queda,res_aux);
+        }
+        if( (direction = check_trio_vertical(board,5,i)) ){
+            res_aux = destroi(board,5,i);
+            res_destroi_cons(res_queda,res_aux);
+        }
+
+    }
+    if(){
+        cai(board, res_queda);
+        refill(board, res_queda);
+    }
+
+    return 0;
