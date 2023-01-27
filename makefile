@@ -22,8 +22,8 @@ terminal : terminal.o board.o auxiliar.o
 
 
 # Objetos 
-terminal.o : terminal.c board.h auxiliar.h
-	$(CC) -c $(CFLAG)  terminal.c 
+terminal.o : main.c board.h auxiliar.h
+	$(CC) -c $(CFLAG)  main.c -o terminal.o 
 
 
 
