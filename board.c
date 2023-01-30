@@ -90,7 +90,6 @@ void printf_board(JEWEL_TYPE **board){
 
 }
 
-
 /* Verifica trio na vertical */
 int check_trio_vertical(JEWEL_TYPE **board, int row, int column){
     JEWEL_TYPE jt = board[row][column];
@@ -199,8 +198,6 @@ int* estoura(JEWEL_TYPE **board, int row, int column,int direction, JEWEL_TYPE j
     return res;
        
 }
-
-
 
 void switch_jewels(JEWEL_TYPE **board,int r1, int c1,int r2, int c2){
     JEWEL_TYPE temp = board[r1][c1];
@@ -320,7 +317,6 @@ int* destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
     return queda;   
 }
 
-
 void res_destroi_cons(int *res1 , int *res2){
 
     for(int i = 0; i < 8; i++){
@@ -409,8 +405,8 @@ int resolve_movement(JEWEL_TYPE **b){
     
     
     if(res_queda[0]  || res_queda[1] || res_queda[2] || res_queda[3] || res_queda[4] || res_queda[5] || res_queda[6] || res_queda[7] ){
+       
         printf_board(b);
-        
         printf("------\n");
         printf("Final [0 1 2 3 4 5 6 7  ]\n");
         printf("      [%i %i %i %i %i %i %i %i ]\n",res_queda[0],res_queda[1],res_queda[2],res_queda[3],res_queda[4],res_queda[5],res_queda[6],res_queda[7]);
@@ -423,8 +419,6 @@ int resolve_movement(JEWEL_TYPE **b){
 
     return 0;
 }
-
-
 
 /* Faz o movimento de uma pedra respeitando as normas do jogo*/
 int valid_move(JEWEL_TYPE **board, int row, int column, int direction,JEWEL_TYPE jt){
@@ -513,8 +507,6 @@ int valid_move(JEWEL_TYPE **board, int row, int column, int direction,JEWEL_TYPE
     resolve_movement(board);
     return 1;
 }
-
-
 
 int break_trio(JEWEL_TYPE **board, int row, int column){
     for (int i = 0; i < 5; i++){

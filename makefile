@@ -9,21 +9,18 @@ all : game.o auxiliar.o board.o
 
 #Outros metodos de compilar
 
+# Roda o jogo sem interface grafica 
+terminal : terminal.o board.o auxiliar.o
+	$(CC) $(CFLAG)  terminal.o board.o auxiliar.o -o terminal $(LFLAG)
 
 # Area para teste, remover depois 
 teste : main.o board.o auxiliar.o
 	$(CC) $(CFLAG)  main.0 board.o auxiliar.o -o teste $(LFLAG)
 
 
-# Roda o jogo sem interface grafica 
-terminal : terminal.o board.o auxiliar.o
-	$(CC) $(CFLAG)  terminal.o board.o auxiliar.o -o teste $(LFLAG)
-
-
-
 # Objetos 
-terminal.o : main.c board.h auxiliar.h
-	$(CC) -c $(CFLAG)  main.c -o terminal.o 
+terminal.o : terminal.c board.h auxiliar.h
+	$(CC) -c $(CFLAG)  terminal.c -o terminal.o 
 
 
 
@@ -41,4 +38,4 @@ clean :
 	rm -f *.o
 
 purge : clean
-	rm -f jewels teste
+	rm -f jewels teste terminal

@@ -10,13 +10,11 @@
 #include "board.h"
 
 
-#define DISPLAY_W 960
-#define DISPLAY_H 600
+#define DISPLAY_W  1024//800//
+#define DISPLAY_H  768//600//768
+#define JEWEL_PIX 70
 
 
-#define BORDER_W 400
-#define BORDER_H 75
-#define BORDER_S 500
 
 int main()
 {
@@ -54,7 +52,8 @@ int main()
     bool done = false;
     bool redraw = true;
     ALLEGRO_EVENT event;
-
+    ALLEGRO_MOUSE_STATE m_state;
+    float m_x = 0 , m_y = 0 ;
     /* Loop*/
     al_start_timer(timer);
     while(1)
@@ -66,6 +65,11 @@ int main()
             case ALLEGRO_EVENT_TIMER:
                 // game logic goes here.
                 redraw = true;
+                break;
+            case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+                al_get_mouse_state(&m_state);
+                m_x = m_state.x;
+                m_y = m_state.y;
                 break;
             case ALLEGRO_EVENT_KEY_DOWN:
                 done = true;
@@ -81,10 +85,14 @@ int main()
         if(redraw && al_is_event_queue_empty(queue))
         {
             al_clear_to_color(al_map_rgb(0, 0, 0));
-            //al_draw_rectangle(BORDER_W,BORDER_H,BORDER_W+BORDER_S,BORDER_H+BORDER_S,al_map_rgb(200, 0, 0),1);
-            //al_draw_rectangle(300,75,750,525,al_map_rgb(200, 0, 0),1);
-            draw_board(300,75,750,525,board);
-
+            for(int i= 0 ; i<8;i++){
+                for(int j= 0 ; j<8;j++){
+                    al_draw_rectangle(400+JEWEL_PIX*i,50+JEWEL_PIX*j,470+JEWEL_PIX*i,120+JEWEL_PIX*j,al_map_rgb(0,0,255),1);        
+                }
+            }
+            al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X: %.1f Y: %.1f", m_x, m_y);
+            /* Tabuleio tem 560x560*/
+            //al_draw_rectangle(400,50,960,610,al_map_rgb(100,0,0),1);
 
 
             al_flip_display();
