@@ -572,6 +572,7 @@ int check_end(JEWEL_TYPE **board){
                 Caso 2) [X-X]
 
             Se nenhum caso for encontrado não existe jogada valida
+
             Se um dos casos for encontrado é necessario uma segunda verificação
                 Sendo X joias da mesma cor e e - Uma joia de cor diferente de X 
                 O são locais a serem verificados:
@@ -589,18 +590,15 @@ int check_end(JEWEL_TYPE **board){
                    [X-X]    
                      O
             Se todos os O forem de cores diferentes da cor de X então não existe jogada
+            Essa verificação é feita tanto horizontalmente quanto verticalmente
     */
 
     for (int i = 0; i < 8; i++){
         for (int j = 0; j < 6; j++){
-            printf("Procurando jogada em [%i,%i]\n", i , j );
             /*                     Horizontal                     */
-            /* Caso 1.0
-            *   o    o
-            *  o [x]x o
-            *   o    o
-            */
+            /*        caso 1.1        */
             if ( board[i][j] == board[i][j+1]){
+                printf("Verificando caso 1.1 na Horizontal em [%i,%i]\n", i , j );
                     /* Lado Esquerdo */
                     if (i-1 >-1 && j-1 > -1 && board[i][j]== board[i-1][j-1])
                         return 0;   
@@ -617,12 +615,9 @@ int check_end(JEWEL_TYPE **board){
                         return 0;                    
             }
             else{
-                /*Caso 1.1
-                *    o   o
-                *  o[o]xx o
-                *    o   o
-                */
+                /*Caso 1.0*/
                 if(board[i][j+1] == board[i][j+2]){
+                    printf("Verificando caso 1.0 na Horizontal em [%i,%i]\n", i , j );
                     /* Lado Esquerdo */
                     if (i-1 >-1 && board[i][j+1]== board[i-1][j])
                         return 0;   
@@ -639,57 +634,64 @@ int check_end(JEWEL_TYPE **board){
                         return 0;      
                 }
                 else{
-                    /* Caso 2
-                    *      o
-                    *    x[c]x
-                    *      o
-                    */
-                    if (j-1 > -1 && board[i][j-1] == board[i][j+1]){
-                        if (i+1 < 8 && board[i][j-1]== board[i+1][j])
+                    /* Caso 2 */
+                    if (board[i][j] == board[i][j+2]){
+                        printf("Verificando caso 2.0 na Horizontal em [%i,%i]\n", i , j );
+                        if (i+1 < 8 && board[i][j]== board[i+1][j+1])
                             return 0;
-                        if (i-1 >-1  && board[i][j-1]== board[i-1][j])
+                        if (i-1 >-1  && board[i][j]== board[i-1][j+1])
                             return 0;   
                     }
                 }   
             } 
-            printf("Procurando jogada em [%i,%i]\n", i , j );
-
-             /*                     Vertical                       */
-
-
-           /*
-           *            0            0
-           *          0[o]          [o]0
-           *            x            x
-           *            x            x
-           */
-            /* Caso 1*/
+            /*                     Vertical           */
+            /* Caso 1.0 */
             if ( board[j+1][i] == board[j+2][i]){
+                    printf("Verificando caso 1.0 na Vertical em [%i,%i]\n", j , i );
+                    /* Lado de cima */
                     if (i-1 >-1 && j-1 > -1 && board[j+1][i] == board[j][i-1])
                         return 0;   
                     if (i+1 < 8 && j-1 > -1 && board[j+1][i] == board[j][i+1])
                         return 0;  
                     if (j-1 > -1 &&  board[j+1][i] == board[j-1][i])
                         return 0;
-                               
+                    /* Lado de baixo */
+                    if (i-1 >-1 && j+3 < 8 && board[j+1][i] == board[j+3][i-1])
+                        return 0;   
+                    if (i+1 < 8 && j+3 < 8 && board[j+1][i] == board[j+3][i+1])
+                        return 0;  
+                    if (j+4 < 8 &&  board[j+1][i] == board[j+4][i])
+                        return 0;                  
             }
             else{
-                /*         
-                *            x            x
-                *            x            x
-                *          o[c]          [c]o
-                *            o            o
-                *                        
-                */
-                /*Caso 2*/
-                if( j > 1 && board[j-1][i] == board[j-2][i]){
-                    /* Lado de Cima */
-                    if (i-1 >-1 && board[j-1][i] == board[j][i-1])
+                /* caso 1.1 */
+                if ( board[j][i] == board[j+1][i] ){
+                    printf("Verificando caso 1.1 na Vertical em [%i,%i]\n", j , i );
+                    /* Lado de cima */
+                    if (i-1 >-1 && j-1 > -1 && board[j][i] == board[j-1][i-1])
                         return 0;   
-                    if (i+1 < 8 && board[j-1][i] == board[j][i+1])
-                        return 0;   
-                    if (j+1 < 8 && board[j-1][i] == board[j+1][i])
+                    if (i+1 < 8 && j-1 > -1 && board[j][i] == board[j-1][i+1])
                         return 0;  
+                    if (j-2 > -1 &&  board[j][i] == board[j-2][i])
+                        return 0;
+                    /* Lado de baixo */
+                    if (i-1 >-1 && board[j][i] == board[j+2][i-1])
+                        return 0;   
+                    if (i+1 < 8 && board[j][i] == board[j+2][i+1])
+                        return 0;  
+                    if (j+3 < 8 &&  board[j][i] == board[j+3][i])
+                        return 0;                                
+                }
+                else{
+                    /*Caso 2*/
+                    if( board[j][i] == board[j+2][i] ){
+                        printf("Verificando caso 2.0 na Vertical em [%i,%i]\n", j , i );
+                        /* Lado de Cima */
+                        if (i-1 >-1 && board[j][i] == board[j+1][i-1])
+                            return 0;   
+                        if (i+1 < 8 && board[j][i] == board[j+1][i+1])
+                            return 0;   
+                    }
                 }
             } 
         
