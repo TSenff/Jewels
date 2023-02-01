@@ -35,7 +35,7 @@ int main(){
         }
         valid_move(b,row,collum,direction,b[row][collum]);
 
-        system("clear");
+        //system("clear");
         printf_board(b);
     }
     free(t);

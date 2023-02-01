@@ -22,13 +22,13 @@ teste : main.o board.o auxiliar.o
 terminal.o : terminal.c board.h auxiliar.h
 	$(CC) -c $(CFLAG)  terminal.c -o terminal.o 
 
-
+	
 
 game.o : game.c auxiliar.h board.h
 	$(CC) -c $(CFLAG) game.c
 
 auxiliar.o: auxiliar.c
-	$(CC) -c $(CFLAG) auxiliar.c
+	$(CC) -c $(CFLAG) auxiliar.c -lm
 
 board.o : board.c
 	$(CC) -c $(CFLAG) board.c

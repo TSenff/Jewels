@@ -53,7 +53,16 @@ int main()
     bool redraw = true;
     ALLEGRO_EVENT event;
     ALLEGRO_MOUSE_STATE m_state;
-    float m_x = 0 , m_y = 0 ;
+    float m_x = -1 , m_y = -1 ;
+    coord pos;
+    pos.x = -1;
+    pos.y = -1;
+
+    int **b;
+    b = malloc(sizeof(int*)*8);
+    for(int i = 0; i < 8; i++)
+        b[i] = calloc(8,sizeof(int));
+
     /* Loop*/
     al_start_timer(timer);
     while(1)
@@ -67,9 +76,17 @@ int main()
                 redraw = true;
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+                printf("Click\n");
                 al_get_mouse_state(&m_state);
+                //if(pos.x != -1 && pos.y != -1)
+                //    b[pos.x][pos.y] = 0;
                 m_x = m_state.x;
                 m_y = m_state.y;
+                pos = click_pos(m_x,m_y);
+                printf("Pos [%i , %i ]\n", pos.x, pos.y);
+
+                if(pos.x > -1 && pos.y > -1)
+                    b[pos.x][pos.y] = !b[pos.x][pos.y] ;
                 break;
             case ALLEGRO_EVENT_KEY_DOWN:
                 done = true;
@@ -87,7 +104,11 @@ int main()
             al_clear_to_color(al_map_rgb(0, 0, 0));
             for(int i= 0 ; i<8;i++){
                 for(int j= 0 ; j<8;j++){
-                    al_draw_rectangle(400+JEWEL_PIX*i,50+JEWEL_PIX*j,470+JEWEL_PIX*i,120+JEWEL_PIX*j,al_map_rgb(0,0,255),1);        
+                    if(b[i][j])
+                        al_draw_filled_rectangle(400+JEWEL_PIX*i,50+JEWEL_PIX*j,400+JEWEL_PIX+JEWEL_PIX*i,50+JEWEL_PIX+JEWEL_PIX*j,al_map_rgb(0,0,255));        
+                    else{
+                        al_draw_rectangle(400+JEWEL_PIX*i,50+JEWEL_PIX*j,400+JEWEL_PIX+JEWEL_PIX*i,50+JEWEL_PIX+JEWEL_PIX*j,al_map_rgb(0,0,255),1);        
+                    }
                 }
             }
             al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X: %.1f Y: %.1f", m_x, m_y);
