@@ -37,7 +37,7 @@ void free_board(JEWEL_TYPE **board){
 }
 
 JEWEL_TYPE rand_jewel(){
-    return rand()%10;
+    return rand()%5;
 }
 
 void fill_board(JEWEL_TYPE **board){

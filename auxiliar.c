@@ -16,8 +16,8 @@ coord click_pos(float x, float y){
     /* 400+JP*I <= x < 400+JP+JP*I */
     /* JP*I <= x-400 < JP+JP*I */
     /* I <= (x-400)/JP < 1+I */
-    pos.x = (int)floor( ((x-350)/70) );
-    pos.y = (int)floor( ((y-50)/70) );
+    pos.x = (int)floor( ((x-350)/80) );
+    pos.y = (int)floor( ((y-50)/80) );
 
     return pos;
 }
