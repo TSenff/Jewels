@@ -10,22 +10,31 @@ void check_init(bool check, char *mensagem){
     printf("Erro ao inicializar: %s",mensagem);
 }
 
-coord click_pos(int x, int y){
+coord click_pos(float x, float y){
     coord pos;
-    //if(x < 400 || x => 960 || y < 50 || y => 610){
-    //   pos.x = -1;
-    //   pos.x = -1;
-    //}
 
     /* 400+JP*I <= x < 400+JP+JP*I */
     /* JP*I <= x-400 < JP+JP*I */
     /* I <= (x-400)/JP < 1+I */
-    pos.x = (int)floor( (x-400)/70 );
-    /* 50+JP*I <= x < 50+JP+JP*I */
-    /* JP*I <= x-50 < JP+JP*I */
-    /* I <= (x-50)/JP < 1+I */
-    pos.y = (int)floor( (y-50)/70 );
-
+    pos.x = (int)floor( ((x-350)/70) );
+    pos.y = (int)floor( ((y-50)/70) );
 
     return pos;
+}
+
+ALLEGRO_COLOR jewel_color(JEWEL_TYPE jp){
+    switch(jp){
+        case RED : 
+            return al_map_rgb(240,0,0);
+        case BLUE :
+            return al_map_rgb(0,0,240);
+        case YELLOW : 
+            return al_map_rgb(240,240,0);
+        case GREEN :
+            return al_map_rgb(0,240,0);
+        case MAGENTA :
+            return al_map_rgb(150,50,250);
+        default :
+            return al_map_rgb(255,255,255);
+    }
 }

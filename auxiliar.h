@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <allegro5/allegro5.h>
+#include "board.h"
 
 struct  coord_s{
     int x;
@@ -19,6 +20,9 @@ typedef struct coord_s coord;
  */
 void check_init(bool check, char *mensagem);
 
-coord click_pos(int x, int y);
+coord click_pos(float x, float y);
+
+ALLEGRO_COLOR jewel_color(JEWEL_TYPE jp);
+
 
 #endif

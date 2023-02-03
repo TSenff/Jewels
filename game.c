@@ -9,16 +9,20 @@
 #include "auxiliar.h"
 #include "board.h"
 
+/* Tela */
+#define DISPLAY_W  1024
+#define DISPLAY_H  768
 
-#define DISPLAY_W  1024//800//
-#define DISPLAY_H  768//600//768
+/* Tabuleiro */
 #define JEWEL_PIX 70
+#define BOARD_W 350
+#define BOARD_H 50
 
 
 
 int main()
 {
-    /* Inicializando */
+    /* Inicializando Alegro  */
     check_init(al_init(), "Allegro");
     check_init(al_install_keyboard(),"Keyboard");
     check_init(al_install_mouse(),"Mouse");
@@ -36,13 +40,18 @@ int main()
     ALLEGRO_FONT* font = al_create_builtin_font();
     check_init(font, "font");
 
+
+    /* Iniciando tabuleiro */
     int **board = create_board();
     if(board == NULL){
         return 1;
     }
     fill_board(board);
+    validate_start(board);
 
-    /* Eventos */
+
+
+    /* Registrando Eventos */
     al_register_event_source(queue, al_get_keyboard_event_source());
     al_register_event_source(queue, al_get_display_event_source(disp));
     al_register_event_source(queue, al_get_timer_event_source(timer));
@@ -53,6 +62,7 @@ int main()
     bool redraw = true;
     ALLEGRO_EVENT event;
     ALLEGRO_MOUSE_STATE m_state;
+
     float m_x = -1 , m_y = -1 ;
     coord pos;
     pos.x = -1;
@@ -78,15 +88,15 @@ int main()
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
                 printf("Click\n");
                 al_get_mouse_state(&m_state);
-                //if(pos.x != -1 && pos.y != -1)
-                //    b[pos.x][pos.y] = 0;
                 m_x = m_state.x;
                 m_y = m_state.y;
                 pos = click_pos(m_x,m_y);
                 printf("Pos [%i , %i ]\n", pos.x, pos.y);
-
-                if(pos.x > -1 && pos.y > -1)
+                
+                if(pos.x > -1 && pos.y > -1 && pos.x < 8 && pos.y < 8){
                     b[pos.x][pos.y] = !b[pos.x][pos.y] ;
+                }
+                printf_board(board);
                 break;
             case ALLEGRO_EVENT_KEY_DOWN:
                 done = true;
@@ -104,11 +114,16 @@ int main()
             al_clear_to_color(al_map_rgb(0, 0, 0));
             for(int i= 0 ; i<8;i++){
                 for(int j= 0 ; j<8;j++){
-                    if(b[i][j])
-                        al_draw_filled_rectangle(400+JEWEL_PIX*i,50+JEWEL_PIX*j,400+JEWEL_PIX+JEWEL_PIX*i,50+JEWEL_PIX+JEWEL_PIX*j,al_map_rgb(0,0,255));        
-                    else{
-                        al_draw_rectangle(400+JEWEL_PIX*i,50+JEWEL_PIX*j,400+JEWEL_PIX+JEWEL_PIX*i,50+JEWEL_PIX+JEWEL_PIX*j,al_map_rgb(0,0,255),1);        
-                    }
+                   // if(b[i][j])
+                   //     al_draw_filled_rectangle(400+JEWEL_PIX*i,50+JEWEL_PIX*j,400+JEWEL_PIX+JEWEL_PIX*i,50+JEWEL_PIX+JEWEL_PIX*j,jewel_color(board[i][j]));        
+                   // else{
+
+                        al_draw_filled_rectangle(BOARD_W+JEWEL_PIX*i,BOARD_H+JEWEL_PIX*j,BOARD_W+JEWEL_PIX+JEWEL_PIX*i,BOARD_H+JEWEL_PIX+JEWEL_PIX*j,jewel_color(board[j][i]));        
+                        al_draw_textf(font, al_map_rgb(255, 255, 255), BOARD_W+35+JEWEL_PIX*i, BOARD_H+35+JEWEL_PIX*j, 0, "%i",board[j][i]);
+
+                        //al_draw_rectangle(400+JEWEL_PIX*i,50+JEWEL_PIX*j,400+JEWEL_PIX+JEWEL_PIX*i,50+JEWEL_PIX+JEWEL_PIX*j,jewel_color(board[i][j]),1);        
+
+                    //}
                 }
             }
             al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X: %.1f Y: %.1f", m_x, m_y);

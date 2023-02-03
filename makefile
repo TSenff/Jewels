@@ -1,6 +1,6 @@
 CC=gcc
 CFLAG= -Wall -I -std=c99
-ALLEGRO=-lallegro_image  -lallegro_primitives  -lallegro_dialog  -lallegro_ttf -lallegro_font -lallegro_audio -lallegro_acodec  -lallegro
+ALLEGRO=-lallegro_image  -lallegro_primitives  -lallegro_dialog  -lallegro_ttf -lallegro_font -lallegro_audio -lallegro_acodec  -lallegro -lm
 
 LFLAG= $(ALLEGRO)
 
@@ -15,7 +15,7 @@ terminal : terminal.o board.o auxiliar.o
 
 # Area para teste, remover depois 
 teste : main.o board.o auxiliar.o
-	$(CC) $(CFLAG)  main.0 board.o auxiliar.o -o teste $(LFLAG)
+	$(CC) $(CFLAG)  main.0 board.o auxiliar.o -o teste $(LFLAG) 
 
 
 # Objetos 
