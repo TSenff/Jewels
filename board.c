@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-
 #define COLRED   "\x1B[31m"
 #define COLGRE   "\x1B[32m"
 #define COLYEL   "\x1B[33m"
@@ -16,7 +15,6 @@
 #define DOWN -1
 #define RIGHT 2
 #define LEFT -2
-
 
 JEWEL_TYPE** create_board(){
     JEWEL_TYPE **board = (JEWEL_TYPE**)malloc(sizeof(JEWEL_TYPE*)*8);

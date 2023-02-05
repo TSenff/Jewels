@@ -1,11 +1,13 @@
 CC=gcc
-CFLAG= -Wall -I -std=c99
+CFLAG= -Wall -I -std=c99 -DDEBUGGER 
 ALLEGRO=-lallegro_image  -lallegro_primitives  -lallegro_dialog  -lallegro_ttf -lallegro_font -lallegro_audio -lallegro_acodec  -lallegro -lm
 
 LFLAG= $(ALLEGRO)
 
+
+
 all : game.o auxiliar.o board.o
-	$(CC) $(CFLAG)  game.o auxiliar.o board.o -o jewels $(LFLAG)
+	$(CC) $(CFLAG) game.o auxiliar.o board.o -o jewels $(LFLAG)
 
 #Outros metodos de compilar
 
@@ -22,10 +24,8 @@ teste : main.o board.o auxiliar.o
 terminal.o : terminal.c board.h auxiliar.h
 	$(CC) -c $(CFLAG)  terminal.c -o terminal.o 
 
-	
-
 game.o : game.c auxiliar.h board.h
-	$(CC) -c $(CFLAG) game.c
+	$(CC) -c   $(CFLAG) game.c
 
 auxiliar.o: auxiliar.c
 	$(CC) -c $(CFLAG) auxiliar.c -lm

@@ -20,6 +20,33 @@
 #define BOARD_H 50
 
 
+enum {NEUTRO, TROCA, DESTROI, RETROCA, QUEDA, REFILL, FIM} state ;
+
+
+/**
+ * @brief 
+ * 
+ * @param i ROW 
+ * @param j COLLUM
+ * @param jewels_bitmap 
+ * @param jp 
+ */
+void draw_jewel(int i,int j,ALLEGRO_BITMAP** jewels_bitmap,JEWEL_TYPE jp){
+    al_draw_bitmap(jewels_bitmap[jp], BOARD_W+JEWEL_PIX*i,BOARD_H+JEWEL_PIX*j, 0);
+}
+
+/**
+ * @brief 
+ * 
+ * @param i ROW 
+ * @param j COLLUM
+ * @param jewels_bitmap 
+ * @param jp 
+ */
+void draw_jewel_move(coord ini, int i_valid, int j_valid ,ALLEGRO_BITMAP** jewels_bitmap,JEWEL_TYPE jp_ini, int *i){
+    al_draw_bitmap(jewels_bitmap[jp_ini], BOARD_W+JEWEL_PIX*(ini.x) - i_valid*(*i+1) ,BOARD_H+JEWEL_PIX*(ini.y) - j_valid*(*i+1), 0);
+}
+
 
 int main(){
     /* Inicializando Alegro  */
@@ -51,11 +78,15 @@ int main(){
     validate_start(board);
 
     /* Inicializando Bitmaps */
-    ALLEGRO_BITMAP* blue = al_load_bitmap("Assets/blue_jewel_no_bkg.png");
-    ALLEGRO_BITMAP* green = al_load_bitmap("Assets/green_jewel_no_bkg.png");
-    ALLEGRO_BITMAP* yellow = al_load_bitmap("Assets/yellow_jewel_no_bkg.png");
-    ALLEGRO_BITMAP* red = al_load_bitmap("Assets/red_jewel_no_bkg.png");
-    ALLEGRO_BITMAP* magenta = al_load_bitmap("Assets/magenta_jewel_no_bkg.png");
+    ALLEGRO_BITMAP** jewel_bitmap = malloc(sizeof(ALLEGRO_BITMAP*)*5);
+    if(jewel_bitmap == NULL)
+        return 1;
+    
+    jewel_bitmap[RED] = al_load_bitmap("Assets/red_jewel_no_bkg.png");
+    jewel_bitmap[BLUE]= al_load_bitmap("Assets/blue_jewel_no_bkg.png");   
+    jewel_bitmap[GREEN]= al_load_bitmap("Assets/green_jewel_no_bkg.png"); 
+    jewel_bitmap[YELLOW]= al_load_bitmap("Assets/yellow_jewel_no_bkg.png");  
+    jewel_bitmap[MAGENTA]= al_load_bitmap("Assets/magenta_jewel_no_bkg.png");
 
     /* Registrando Eventos */
     al_register_event_source(queue, al_get_keyboard_event_source());
@@ -73,7 +104,7 @@ int main(){
     /* Mouse*/
     short int click = 0;
     float x0 = -1 , y0 = -1, x1 = -1 , y1 = -1;
-    coord pos0, pos1;
+    coord pos0, pos1, pos_aux;
     pos0.x = 0;
     pos0.y = 0;
 
@@ -83,13 +114,17 @@ int main(){
     /* Auxiliar de Movimento */
     int direction = 0;
 
-
+    /* animação */
+    int an_counter = 0;
 
     /* Tabuleiro */
     int **b;
     b = malloc(sizeof(int*)*8);
     for(int i = 0; i < 8; i++)
         b[i] = calloc(8,sizeof(int));
+
+    /* Flags */
+    state = NEUTRO; 
 
     /* Loop*/
     al_start_timer(timer);
@@ -98,47 +133,169 @@ int main(){
 
         switch(event.type){
             case ALLEGRO_EVENT_TIMER:
-                // game logic goes here.
-                redraw = true;
+                switch (state){
+                /* Movimento  */
+                case  DESTROI:
+                
+                    if( check_trio_horizontal(board,pos1.y,pos1.x) || check_trio_vertical(board,pos1.y,pos1.x) || check_trio_horizontal(board,pos0.y,pos0.x) || check_trio_vertical(board,pos0.y,pos0.x) ){
+                    /* Reset variaveis de click */
+                        pos0.x = 0;
+                        pos0.y = 0;
+                        pos1.x = 0;
+                        pos1.y = 0;
+                        click  = 0;
+                        redraw = true;
+                        state  = NEUTRO;
+                    }
+                    else{
+                        state  = RETROCA;
+                        #ifdef DEBUGGER
+                        printf("Retroca\n");
+                        printf("pos0 [%i , %i ]\n", pos0.y, pos0.x);
+                        printf("pos1 [%i , %i ]\n", pos1.y, pos1.x);
+                        printf("Direction %i\n",direction);
+                        printf("Color %i\n",board[pos0.y][pos0.x]);
+                        #endif
+                    }
+                    /* Reset An_count*/
+                    redraw = false;
+                    an_counter = 0;
+                    break;
+                /* Faz a troca */
+                case RETROCA:
+                    #ifdef DEBUGGER
+                    printf("RE");
+                    #endif
+                case TROCA:
+                    #ifdef DEBUGGER                
+                    printf("TROCA\n");
+                    #endif
+                    /* ----------- Animação --------*/
+                    al_clear_to_color(al_map_rgb(0, 0, 0));
+                    al_draw_rectangle(BOARD_W,BOARD_H,BOARD_W+JEWEL_PIX*8,BOARD_H+JEWEL_PIX*8,al_map_rgb(255,255,255),1);        
+                    /* Desenha Marcador de Joia */
+                    if(click)
+                        al_draw_filled_rectangle(BOARD_W+JEWEL_PIX*(pos0.x)-5,BOARD_H+JEWEL_PIX*(pos0.y)-5,BOARD_W+JEWEL_PIX*(pos0.x+1)-5,BOARD_H+JEWEL_PIX*(pos0.y+1)-5,al_map_rgba_f(0.2,0.2,0.2,0.1));        
+
+                    /* Desenha todas as joias menos as que estão se movendo */
+                    for(int i= 0 ; i<8;i++){
+                        for(int j= 0 ; j<8;j++){
+                            if( (i != pos0.x || j != pos0.y) && (i != pos1.x || j != pos1.y) )
+                                draw_jewel(i,j,jewel_bitmap,board[j][i]);
+                        }
+                    }
+                    
+                    an_counter= an_counter+2;
+                    if (state == TROCA){
+                        draw_jewel_move(pos0, (-1)*direction/2, direction % 2  ,jewel_bitmap, board[pos0.y][pos0.x],&an_counter);
+                        draw_jewel_move(pos1, direction/2, (-1)*direction % 2  ,jewel_bitmap, board[pos1.y][pos1.x],&an_counter);
+                    }
+                    else{
+                        draw_jewel_move(pos0, (-1)*direction/2, direction % 2  ,jewel_bitmap, board[pos0.y][pos0.x],&an_counter);
+                        draw_jewel_move(pos1, direction/2, (-1)*direction % 2  ,jewel_bitmap, board[pos1.y][pos1.x],&an_counter);
+                    }
+                    
+
+                    if(an_counter >= JEWEL_PIX){
+                        switch_jewels(board,pos0.y,pos0.x,pos1.y,pos1.x);
+                        if (state == RETROCA){
+                            #ifdef DEBUGGER
+                            printf("Retroca -> Neutro\n");
+                            #endif
+                            
+                            pos0.x = 0;
+                            pos0.y = 0;
+                            pos1.x = 0;
+                            pos1.y = 0;
+                            click  = 0;
+                            an_counter = 0;
+                            state = NEUTRO;
+                        }
+                        else{
+                            #ifdef DEBUGGER
+                            printf("Troca -> Destroi\n");
+                            #endif
+
+                            state = DESTROI;
+                        }
+                        
+                    }
+
+                    al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X0: %.1f Y0: %.1f", x0, y0);
+                    al_draw_textf(font, al_map_rgb(255, 255, 255), 50, 50, 0, "X1: %.1f Y1: %.1f", x1, y1);
+                    al_flip_display();
+
+                    redraw = false;
+                    break;
+                case QUEDA : 
+                    break;
+                case FIM : 
+                    break;
+                default:
+                    redraw = true;
+                    break;
+                }
+
+
+
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+                #ifdef DEBUGGER            
                 printf("Click\n");
+                #endif
+
                 al_get_mouse_state(&m_state);
                 switch(click){
                     case 0: 
-                        b[pos0.x][pos0.y] = 0;
                         x0 = m_state.x;
                         y0 = m_state.y;
                         pos0 = click_pos(x0,y0);
+                        /* Verifica se foi um click valido */
                         if(pos0.x > -1 && pos0.y > -1 && pos0.x < 8 && pos0.y < 8){
                             click++;
+                            /* Ativa o marcador de joia selecionada */
                             b[pos0.x][pos0.y] = 1 ;
                         }
                         break;
                     case 1 :
-                        b[pos1.x][pos1.y] = 0;
+                        /* Desliga o Marcador de joia selecionada */
+                        b[pos0.x][pos0.y] = 0;
+
                         x1 = m_state.x;
                         y1 = m_state.y;
                         pos1 = click_pos(x1,y1);
+
+                        /* Verifica se Adjacente a click*/
                         if(pos1.x > -1 && pos1.y > -1 && pos1.x < 8 && pos1.y < 8){
-                            /* Verifica Adjacente */
-                            if(abs(pos0.x-pos1.x) == 1 || abs(pos0.y-pos1.y) == 1){
-                                /* Movimento Vertical*/
-                                if(pos0.x == pos1.x){
-                                    direction = 1 * pos0.x-pos1.x;
-                                }
-                                /* Movimento Horizontal*/
-                                if(pos0.y == pos1.y){
-                                    direction = 2 * pos0.x-pos1.x;
+                            /* Horizontal */
+                            if(abs(pos0.x-pos1.x) == 1 && pos0.y == pos1.y){
+                                #ifdef DEBUGGER
+                                printf("Horizontal\n");
+                                #endif
+                                direction = 2 * (pos1.x-pos0.x);
+                                state = TROCA;
+                            }
+                            else{
+                                /* Vertical */
+                                if(abs(pos0.y-pos1.y) == 1 && pos0.x == pos1.x ){
+                                    #ifdef DEBUGGER
+                                    printf("Vertical\n");
+                                    #endif
+                                    direction = 1 * (pos0.y-pos1.y);
+                                    state = TROCA;
                                 }
                             }
+                            #ifdef DEBUGGER
+                            /* Mensagem Debbug*/
+                            printf("pos0 [%i , %i ]\n", pos0.y, pos0.x);
+                            printf("pos1 [%i , %i ]\n", pos1.y, pos1.x);
+                            printf("Direction %i\n",direction);
+                            printf("Color %i\n",board[pos0.y][pos0.x]);
+                            #endif
                         }
+                        click = 0;
                         break;
                 }
-
-                printf("pos0 [%i , %i ]\n", pos0.x, pos1.y);
-                printf("pos1 [%i , %i ]\n", pos1.x, pos1.y);
-
                 break;
             case ALLEGRO_EVENT_KEY_DOWN:
                 done = true;
@@ -154,29 +311,14 @@ int main(){
         if(redraw && al_is_event_queue_empty(queue)){
             al_clear_to_color(al_map_rgb(0, 0, 0));
             al_draw_rectangle(BOARD_W,BOARD_H,BOARD_W+JEWEL_PIX*8,BOARD_H+JEWEL_PIX*8,al_map_rgb(255,255,255),1);        
-
+            /* Desenha Marcador de Joia */
+            if(click)
+                al_draw_filled_rectangle(BOARD_W+JEWEL_PIX*(pos0.x)-5,BOARD_H+JEWEL_PIX*(pos0.y)-5,BOARD_W+JEWEL_PIX*(pos0.x+1)-5,BOARD_H+JEWEL_PIX*(pos0.y+1)-5,al_map_rgba_f(0.2,0.2,0.2,0.1));        
+            
+            /* Desenha todas as joias */
             for(int i= 0 ; i<8;i++){
                 for(int j= 0 ; j<8;j++){
-                    if(b[i][j]){
-                        al_draw_filled_rectangle(BOARD_W+JEWEL_PIX*i-5,BOARD_H+JEWEL_PIX*j-5,BOARD_W+JEWEL_PIX*(i+1)-5,BOARD_H+JEWEL_PIX*(j+1)-5,al_map_rgba_f(0.2,0.2,0.2,0.1));        
-                    }
-                    switch(board[j][i]){
-                        case RED : 
-                            al_draw_bitmap(red, BOARD_W+JEWEL_PIX*i,BOARD_H+JEWEL_PIX*j, 0);
-                            break;
-                        case BLUE :
-                                al_draw_bitmap(blue, BOARD_W+JEWEL_PIX*i,BOARD_H+JEWEL_PIX*j, 0);
-                            break;
-                        case YELLOW : 
-                                al_draw_bitmap(yellow, BOARD_W+JEWEL_PIX*i,BOARD_H+JEWEL_PIX*j, 0);
-                            break;
-                        case GREEN :
-                                al_draw_bitmap(green, BOARD_W+JEWEL_PIX*i,BOARD_H+JEWEL_PIX*j, 0);
-                            break;
-                        case MAGENTA :
-                                al_draw_bitmap(magenta, BOARD_W+JEWEL_PIX*i,BOARD_H+JEWEL_PIX*j, 0);
-                            break;
-                    }
+                    draw_jewel(i,j,jewel_bitmap,board[j][i]);
                 }
             }
             al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X0: %.1f Y0: %.1f", x0, y0);

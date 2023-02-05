@@ -13,6 +13,11 @@ typedef enum JEWEL_TYPE{
 
 JEWEL_TYPE** create_board();
 
+void switch_jewels(JEWEL_TYPE **board,int r1, int c1,int r2, int c2);
+int check_trio_vertical(JEWEL_TYPE **board, int row, int column);
+int check_trio_horizontal(JEWEL_TYPE **board, int row, int column);
+
+
 void free_board(JEWEL_TYPE **board);
 
 void fill_board(JEWEL_TYPE **board);
