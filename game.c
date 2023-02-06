@@ -231,7 +231,6 @@ int main(){
                         draw_jewel_move(pos0, (-1)*direction/2, direction % 2  ,jewel_bitmap, board[pos0.y][pos0.x],&animation_frame_counter);
                         draw_jewel_move(pos1, direction/2, (-1)*direction % 2  ,jewel_bitmap, board[pos1.y][pos1.x],&animation_frame_counter);
                     }
-                    
                     /* Fim da animação de troca*/
                     if(animation_frame_counter >= JEWEL_PIX){
                         switch_jewels(board,pos0.y,pos0.x,pos1.y,pos1.x);
@@ -324,30 +323,38 @@ int main(){
 
                     /* Final da animação */
                     if(animation_frame_counter >= JEWEL_PIX){
-                        state = NEUTRO;
-                        /* Atualiza matriz do tabuleiro */
-                        cai(board_aux,queda_pri);
-                        update_board(board, board_aux);
+
+                        /* Move todos os que foram animados */
+                        for (int i = 0; i < 8; i++){    
+                            if (queda_pri[i] != 0){
+                                for (int j = queda_pri[i]-1; j > 0; j--){
+                                    switch_jewels(board_aux,j-1,i,j,i);
+                                }   
+                                queda_pri[i]++;
+                            }
+                        }
+                        
                         printf_board(board);
                         printf_board(board_aux);
 
+
                         /* Refill no Buffer */
                         for (int i = 0; i < 8; i++){
-                            if (queda_aux[i] != 0 ){
-                                board[0][i] =  buffer_jewels[i];
+                            if (queda_pri[i] != 0 ){
+                                if(queda_pri[i] > 8|| board_aux[queda_pri[i]-1][i] != EMPTY)
+                                    queda_pri[i] = 0;
+                                board_aux[0][i] =  buffer_jewels[i];
+                                buffer_jewels[i] = rand_jewel();
+
                             }
                             
-                            buffer_jewels[i] = rand_jewel();
                         }
-                        update_board(board_aux,board);                        
+                    
+                        update_board(board,board_aux);                        
                         printf_board(board);
                         animation_frame_counter = 0;
-                        //refill(board,queda_pri);
-                        /*
-                        while (1){
-
-                        }
-                        */
+                        if( !(queda_pri[0] || queda_pri[1] ||queda_pri[2] ||queda_pri[3] ||queda_pri[4] ||queda_pri[5] ||queda_pri[6] || queda_pri[7] ||queda_pri[8]) )
+                            state = FIM;
                     }
 
                     al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X0: %.1f Y0: %.1f", x0, y0);
@@ -357,6 +364,8 @@ int main(){
                     redraw = false;
                     break;
                 case FIM : 
+                    done = check_end(board);
+                    state = NEUTRO;
                     break;
                 default:
                     redraw = true;

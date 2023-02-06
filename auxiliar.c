@@ -10,15 +10,13 @@ void check_init(bool check, char *mensagem){
     printf("Erro ao inicializar: %s",mensagem);
 }
 
+/* 350+JP*I <= x < 400+JP+JP*I */
+/* JP*I <= x-400 < JP+JP*I */
+/* I <= (x-400)/JP < I+1 */
 coord click_pos(float x, float y){
     coord pos;
-
-    /* 400+JP*I <= x < 400+JP+JP*I */
-    /* JP*I <= x-400 < JP+JP*I */
-    /* I <= (x-400)/JP < 1+I */
     pos.x = (int)floor( ((x-350)/80) );
     pos.y = (int)floor( ((y-50)/80) );
-
     return pos;
 }
 

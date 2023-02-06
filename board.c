@@ -238,7 +238,7 @@ void refill(JEWEL_TYPE **board, int *info_queda){
 }
 
 int min(int a, int b){
-    if(b != 0 && a > b)
+    if( (b != 0 && a > b) || a == 0)
         return b;
     return a;
 }
