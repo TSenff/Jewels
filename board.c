@@ -28,6 +28,27 @@ JEWEL_TYPE** create_board(){
     return board;
 }
 
+JEWEL_TYPE ** copy_board(JEWEL_TYPE **board){
+    JEWEL_TYPE ** b_copy;
+    b_copy = create_board();
+    for (int i = 0; i < 8; i++){
+        for (int j = 0; j < 8; j++){
+            b_copy[i][j]=board[i][j];
+        }
+    }   
+    return b_copy;
+}
+
+void update_board(JEWEL_TYPE **board, JEWEL_TYPE ** current){
+    for (int i = 0; i < 8; i++){
+        for (int j = 0; j < 8; j++){
+            board[i][j]=current[i][j];
+        }
+    }   
+}
+
+
+
 void free_board(JEWEL_TYPE **board){
     for (int i = 0; i < 8; i++)
         free(board[i]);
@@ -37,6 +58,7 @@ void free_board(JEWEL_TYPE **board){
 JEWEL_TYPE rand_jewel(){
     return rand()%5;
 }
+
 
 void fill_board(JEWEL_TYPE **board){
     srand(time(NULL));

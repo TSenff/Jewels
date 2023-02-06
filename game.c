@@ -47,6 +47,9 @@ void draw_jewel_move(coord ini, int i_valid, int j_valid ,ALLEGRO_BITMAP** jewel
     al_draw_bitmap(jewels_bitmap[jp_ini], BOARD_W+JEWEL_PIX*(ini.x) - i_valid*(*i+1) ,BOARD_H+JEWEL_PIX*(ini.y) - j_valid*(*i+1), 0);
 }
 
+void draw_jewel_transparency(int i,int j, ALLEGRO_BITMAP** jewels_bitmap, JEWEL_TYPE jp_ini, int k){
+    al_draw_tinted_bitmap(jewels_bitmap[jp_ini], al_map_rgb_f(((float)100-(k))/100,((float)100-(k))/100,((float)100-(k))/100),BOARD_W+JEWEL_PIX*(i), BOARD_H+JEWEL_PIX*(j), 0);
+}
 
 int main(){
     /* Inicializando Alegro  */
@@ -70,23 +73,17 @@ int main(){
 
 
     /* Iniciando tabuleiro */
-    int **board = create_board();
-    if(board == NULL){
-        return 1;
-    }
-    fill_board(board);
-    validate_start(board);
 
     /* Inicializando Bitmaps */
     ALLEGRO_BITMAP** jewel_bitmap = malloc(sizeof(ALLEGRO_BITMAP*)*5);
     if(jewel_bitmap == NULL)
         return 1;
     
-    jewel_bitmap[RED] = al_load_bitmap("Assets/red_jewel_no_bkg.png");
-    jewel_bitmap[BLUE]= al_load_bitmap("Assets/blue_jewel_no_bkg.png");   
-    jewel_bitmap[GREEN]= al_load_bitmap("Assets/green_jewel_no_bkg.png"); 
-    jewel_bitmap[YELLOW]= al_load_bitmap("Assets/yellow_jewel_no_bkg.png");  
-    jewel_bitmap[MAGENTA]= al_load_bitmap("Assets/magenta_jewel_no_bkg.png");
+    jewel_bitmap[RED]      = al_load_bitmap("Assets/red_jewel_no_bkg.png");
+    jewel_bitmap[BLUE]     = al_load_bitmap("Assets/blue_jewel_no_bkg.png");   
+    jewel_bitmap[GREEN]    = al_load_bitmap("Assets/green_jewel_no_bkg.png"); 
+    jewel_bitmap[YELLOW]   = al_load_bitmap("Assets/yellow_jewel_no_bkg.png");  
+    jewel_bitmap[MAGENTA]  = al_load_bitmap("Assets/magenta_jewel_no_bkg.png");
 
     /* Registrando Eventos */
     al_register_event_source(queue, al_get_keyboard_event_source());
@@ -113,15 +110,37 @@ int main(){
 
     /* Auxiliar de Movimento */
     int direction = 0;
+    int *estoura_pri, *estoura_aux;
+    int *queda_pri, *queda_aux;
 
     /* animação */
-    int an_counter = 0;
+    int animation_frame_counter = 0;
 
     /* Tabuleiro */
     int **b;
     b = malloc(sizeof(int*)*8);
     for(int i = 0; i < 8; i++)
         b[i] = calloc(8,sizeof(int));
+
+    int **board = create_board();
+    if(board == NULL){
+        return 1;
+    }
+
+    fill_board(board);
+    validate_start(board);
+    int **board_aux = copy_board(board);
+    if(board_aux == NULL){
+        return 1;
+    }
+
+    int *buffer_jewels = malloc(sizeof(int)*8);
+    if (buffer_jewels == NULL)
+        return 1;    
+    for (int i = 0; i < 7; i++){
+        buffer_jewels[i] = rand_jewel();
+    }
+    
 
     /* Flags */
     state = NEUTRO; 
@@ -136,31 +155,52 @@ int main(){
                 switch (state){
                 /* Movimento  */
                 case  DESTROI:
-                
-                    if( check_trio_horizontal(board,pos1.y,pos1.x) || check_trio_vertical(board,pos1.y,pos1.x) || check_trio_horizontal(board,pos0.y,pos0.x) || check_trio_vertical(board,pos0.y,pos0.x) ){
-                    /* Reset variaveis de click */
+                        #ifdef DEBUGGER
+                        printf("Destroi\n");
+                        #endif
+                        /* ----------- Animação --------*/
+                        al_clear_to_color(al_map_rgb(0, 0, 0));
+                        al_draw_rectangle(BOARD_W,BOARD_H,BOARD_W+JEWEL_PIX*8,BOARD_H+JEWEL_PIX*8,al_map_rgb(255,255,255),1);        
+
+                        for(int i= 0 ; i<8;i++){
+                            for(int j= 0 ; j<8;j++){
+                                if(board_aux[j][i] == EMPTY){
+                                    draw_jewel_transparency(i,j,jewel_bitmap,board[j][i],animation_frame_counter);
+                                }
+                                else{
+                                    draw_jewel(i,j,jewel_bitmap,board[j][i]);
+                                }
+                            }
+                        }
+                        animation_frame_counter++;
+                        if(animation_frame_counter > 100){
+                            #ifdef DEBUGGER                
+                            printf("Destroi -> Queda\n");
+                            #endif
+                            state = QUEDA;
+                            animation_frame_counter = 0; 
+                            
+                        }
+
+                        al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X0: %.1f Y0: %.1f", x0, y0);
+                        al_draw_textf(font, al_map_rgb(255, 255, 255), 50, 50, 0, "X1: %.1f Y1: %.1f", x1, y1);
+                        al_flip_display();
+
+                        redraw = false;
+                        break;
+
+
+                        /* Reset variaveis de click */
                         pos0.x = 0;
                         pos0.y = 0;
                         pos1.x = 0;
                         pos1.y = 0;
                         click  = 0;
-                        redraw = true;
                         state  = NEUTRO;
-                    }
-                    else{
-                        state  = RETROCA;
-                        #ifdef DEBUGGER
-                        printf("Retroca\n");
-                        printf("pos0 [%i , %i ]\n", pos0.y, pos0.x);
-                        printf("pos1 [%i , %i ]\n", pos1.y, pos1.x);
-                        printf("Direction %i\n",direction);
-                        printf("Color %i\n",board[pos0.y][pos0.x]);
-                        #endif
-                    }
-                    /* Reset An_count*/
+
                     redraw = false;
-                    an_counter = 0;
                     break;
+                
                 /* Faz a troca */
                 case RETROCA:
                     #ifdef DEBUGGER
@@ -173,9 +213,6 @@ int main(){
                     /* ----------- Animação --------*/
                     al_clear_to_color(al_map_rgb(0, 0, 0));
                     al_draw_rectangle(BOARD_W,BOARD_H,BOARD_W+JEWEL_PIX*8,BOARD_H+JEWEL_PIX*8,al_map_rgb(255,255,255),1);        
-                    /* Desenha Marcador de Joia */
-                    if(click)
-                        al_draw_filled_rectangle(BOARD_W+JEWEL_PIX*(pos0.x)-5,BOARD_H+JEWEL_PIX*(pos0.y)-5,BOARD_W+JEWEL_PIX*(pos0.x+1)-5,BOARD_H+JEWEL_PIX*(pos0.y+1)-5,al_map_rgba_f(0.2,0.2,0.2,0.1));        
 
                     /* Desenha todas as joias menos as que estão se movendo */
                     for(int i= 0 ; i<8;i++){
@@ -184,20 +221,21 @@ int main(){
                                 draw_jewel(i,j,jewel_bitmap,board[j][i]);
                         }
                     }
-                    
-                    an_counter= an_counter+2;
+
+                    animation_frame_counter= animation_frame_counter+2;
                     if (state == TROCA){
-                        draw_jewel_move(pos0, (-1)*direction/2, direction % 2  ,jewel_bitmap, board[pos0.y][pos0.x],&an_counter);
-                        draw_jewel_move(pos1, direction/2, (-1)*direction % 2  ,jewel_bitmap, board[pos1.y][pos1.x],&an_counter);
+                        draw_jewel_move(pos0, (-1)*direction/2, direction % 2  ,jewel_bitmap, board[pos0.y][pos0.x],&animation_frame_counter);
+                        draw_jewel_move(pos1, direction/2, (-1)*direction % 2  ,jewel_bitmap, board[pos1.y][pos1.x],&animation_frame_counter);
                     }
                     else{
-                        draw_jewel_move(pos0, (-1)*direction/2, direction % 2  ,jewel_bitmap, board[pos0.y][pos0.x],&an_counter);
-                        draw_jewel_move(pos1, direction/2, (-1)*direction % 2  ,jewel_bitmap, board[pos1.y][pos1.x],&an_counter);
+                        draw_jewel_move(pos0, (-1)*direction/2, direction % 2  ,jewel_bitmap, board[pos0.y][pos0.x],&animation_frame_counter);
+                        draw_jewel_move(pos1, direction/2, (-1)*direction % 2  ,jewel_bitmap, board[pos1.y][pos1.x],&animation_frame_counter);
                     }
                     
-
-                    if(an_counter >= JEWEL_PIX){
+                    /* Fim da animação de troca*/
+                    if(animation_frame_counter >= JEWEL_PIX){
                         switch_jewels(board,pos0.y,pos0.x,pos1.y,pos1.x);
+                        switch_jewels(board_aux,pos0.y,pos0.x,pos1.y,pos1.x);
                         if (state == RETROCA){
                             #ifdef DEBUGGER
                             printf("Retroca -> Neutro\n");
@@ -208,17 +246,45 @@ int main(){
                             pos1.x = 0;
                             pos1.y = 0;
                             click  = 0;
-                            an_counter = 0;
                             state = NEUTRO;
                         }
                         else{
-                            #ifdef DEBUGGER
-                            printf("Troca -> Destroi\n");
-                            #endif
+                            /* Verifica se a troca foi valida*/
+                            estoura_pri = estoura(board_aux,pos1.y,pos1.x, direction, board[pos1.y][pos1.x]);
+                            estoura_aux = estoura(board_aux,pos0.y,pos0.x, -1*direction,board[pos0.y][pos0.x]);
+                            if( (estoura_aux[0] || estoura_aux[1] || estoura_aux[2] || estoura_aux[3]) ||
+                                (estoura_pri[0] || estoura_pri[1] || estoura_pri[2] || estoura_pri[3]) ){
+                                #ifdef DEBUGGER
+                                printf("Troca -> Destroi\n");
+                                #endif
 
-                            state = DESTROI;
+                                queda_pri = destroi(board_aux,pos1.y,pos1.x,estoura_pri, board[pos1.y][pos1.x]);
+                                queda_aux = destroi(board_aux,pos0.y,pos0.x,estoura_aux, board[pos0.y][pos0.x]);
+                                
+                                /* Encontra o ponto vazio mais alto */
+                                for (int i = 0; i < 8; i++){
+                                    queda_pri[i] = min(queda_pri[i],queda_aux[i]);  
+                                    queda_aux[i] = 0;
+                                    if (queda_pri[i] != 0){
+                                        for (int j = queda_pri[i]-1; j < 8; j++){
+                                            if(board_aux[j][i] != EMPTY)
+                                                break;
+                                            queda_aux[i]++;
+                                        }
+                                    }
+                                }
+                                
+                                state = DESTROI;
+                            }
+                            else{
+                                #ifdef DEBUGGER
+                                printf("Troca -> Retroca\n");
+                                #endif
+                                state = RETROCA;
+                            }
+                            
                         }
-                        
+                        animation_frame_counter = 0;
                     }
 
                     al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X0: %.1f Y0: %.1f", x0, y0);
@@ -228,6 +294,67 @@ int main(){
                     redraw = false;
                     break;
                 case QUEDA : 
+
+                    /* ----------- Animação -------- */
+                    al_clear_to_color(al_map_rgb(0, 0, 0));
+                    al_draw_rectangle(BOARD_W,BOARD_H,BOARD_W+JEWEL_PIX*8,BOARD_H+JEWEL_PIX*8,al_map_rgb(255,255,255),1);        
+                    
+                    animation_frame_counter = animation_frame_counter+2;
+
+                    for (int i = 0; i < 8; i++){
+                        pos_aux.x = i;
+                        for(int j = 7 ; j>-1;j--){
+                            pos_aux.y = j;
+                            if(board_aux[j][i] != EMPTY){
+                                if( queda_pri[i] > j ){
+                                    draw_jewel_move(pos_aux,0,-1,jewel_bitmap,board[j][i],&animation_frame_counter);
+                                }
+                                else{
+                                    draw_jewel(i,j,jewel_bitmap,board[j][i]);
+                                }
+                            }
+                        }
+                        if (queda_pri[i] != 0){
+                            pos_aux.x = i;
+                            pos_aux.y = -1;
+                            draw_jewel_move(pos_aux,0,-1,jewel_bitmap,buffer_jewels[i],&animation_frame_counter);                            
+                        }
+                        
+                    }
+
+                    /* Final da animação */
+                    if(animation_frame_counter >= JEWEL_PIX){
+                        state = NEUTRO;
+                        /* Atualiza matriz do tabuleiro */
+                        cai(board_aux,queda_pri);
+                        update_board(board, board_aux);
+                        printf_board(board);
+                        printf_board(board_aux);
+
+                        /* Refill no Buffer */
+                        for (int i = 0; i < 8; i++){
+                            if (queda_aux[i] != 0 ){
+                                board[0][i] =  buffer_jewels[i];
+                            }
+                            
+                            buffer_jewels[i] = rand_jewel();
+                        }
+                        update_board(board_aux,board);                        
+                        printf_board(board);
+                        animation_frame_counter = 0;
+                        //refill(board,queda_pri);
+                        /*
+                        while (1){
+
+                        }
+                        */
+                    }
+
+                    al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X0: %.1f Y0: %.1f", x0, y0);
+                    al_draw_textf(font, al_map_rgb(255, 255, 255), 50, 50, 0, "X1: %.1f Y1: %.1f", x1, y1);
+                    al_flip_display();
+
+                    redraw = false;
                     break;
                 case FIM : 
                     break;
@@ -243,6 +370,9 @@ int main(){
                 #ifdef DEBUGGER            
                 printf("Click\n");
                 #endif
+
+                if (state != NEUTRO)
+                    break;                
 
                 al_get_mouse_state(&m_state);
                 switch(click){

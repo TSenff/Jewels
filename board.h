@@ -16,11 +16,19 @@ JEWEL_TYPE** create_board();
 void switch_jewels(JEWEL_TYPE **board,int r1, int c1,int r2, int c2);
 int check_trio_vertical(JEWEL_TYPE **board, int row, int column);
 int check_trio_horizontal(JEWEL_TYPE **board, int row, int column);
-
+int* estoura(JEWEL_TYPE **board, int row, int column,int direction, JEWEL_TYPE jt);
+void cai(JEWEL_TYPE **board,int *info_queda);
+void update_board(JEWEL_TYPE **board, JEWEL_TYPE ** current);
+JEWEL_TYPE rand_jewel();
+void refill(JEWEL_TYPE **board, int *info_queda);
 
 void free_board(JEWEL_TYPE **board);
 
 void fill_board(JEWEL_TYPE **board);
+JEWEL_TYPE ** copy_board(JEWEL_TYPE **board);
+int* destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE jt);
+
+int min(int a, int b);
 
 void draw_board(float x1, float y1, float x2, float y2, int **board);
 
