@@ -21,6 +21,8 @@ void cai(JEWEL_TYPE **board,int *info_queda);
 void update_board(JEWEL_TYPE **board, JEWEL_TYPE ** current);
 JEWEL_TYPE rand_jewel();
 void refill(JEWEL_TYPE **board, int *info_queda);
+int resolve_movement(JEWEL_TYPE **b);
+int *seek_and_destroy(JEWEL_TYPE **b);
 
 void free_board(JEWEL_TYPE **board);
 

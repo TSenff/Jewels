@@ -153,7 +153,6 @@ int main(){
         switch(event.type){
             case ALLEGRO_EVENT_TIMER:
                 switch (state){
-                /* Movimento  */
                 case  DESTROI:
                         #ifdef DEBUGGER
                         printf("Destroi\n");
@@ -222,17 +221,14 @@ int main(){
                         }
                     }
 
+                    /* Desenha as Joias que estão se movendo */
                     animation_frame_counter= animation_frame_counter+2;
-                    if (state == TROCA){
-                        draw_jewel_move(pos0, (-1)*direction/2, direction % 2  ,jewel_bitmap, board[pos0.y][pos0.x],&animation_frame_counter);
-                        draw_jewel_move(pos1, direction/2, (-1)*direction % 2  ,jewel_bitmap, board[pos1.y][pos1.x],&animation_frame_counter);
-                    }
-                    else{
-                        draw_jewel_move(pos0, (-1)*direction/2, direction % 2  ,jewel_bitmap, board[pos0.y][pos0.x],&animation_frame_counter);
-                        draw_jewel_move(pos1, direction/2, (-1)*direction % 2  ,jewel_bitmap, board[pos1.y][pos1.x],&animation_frame_counter);
-                    }
+                    draw_jewel_move(pos0, (-1)*direction/2, direction % 2  ,jewel_bitmap, board[pos0.y][pos0.x],&animation_frame_counter);
+                    draw_jewel_move(pos1, direction/2, (-1)*direction % 2  ,jewel_bitmap, board[pos1.y][pos1.x],&animation_frame_counter);
+                    
                     /* Fim da animação de troca*/
                     if(animation_frame_counter >= JEWEL_PIX){
+                        /* Faz a troca */
                         switch_jewels(board,pos0.y,pos0.x,pos1.y,pos1.x);
                         switch_jewels(board_aux,pos0.y,pos0.x,pos1.y,pos1.x);
                         if (state == RETROCA){
@@ -261,6 +257,8 @@ int main(){
                                 queda_aux = destroi(board_aux,pos0.y,pos0.x,estoura_aux, board[pos0.y][pos0.x]);
                                 
                                 /* Encontra o ponto vazio mais alto */
+                                /* Queda principal tem o ponto vazio mais alto */
+                                /* Queda auxiliar tem a quantidade de pontos vazios na coluna  */
                                 for (int i = 0; i < 8; i++){
                                     queda_pri[i] = min(queda_pri[i],queda_aux[i]);  
                                     queda_aux[i] = 0;
@@ -353,8 +351,16 @@ int main(){
                         update_board(board,board_aux);                        
                         printf_board(board);
                         animation_frame_counter = 0;
-                        if( !(queda_pri[0] || queda_pri[1] ||queda_pri[2] ||queda_pri[3] ||queda_pri[4] ||queda_pri[5] ||queda_pri[6] || queda_pri[7] ||queda_pri[8]) )
+                        if( !(queda_pri[0] || queda_pri[1] ||queda_pri[2] ||queda_pri[3] ||queda_pri[4] ||queda_pri[5] ||queda_pri[6] || queda_pri[7] ||queda_pri[8]) ){
+                            /* Sem animação 
+                            resolve_movement(board_aux);
+
+                            update_board(board,board_aux);                        
+
                             state = FIM;
+                            */
+                            state = REFILL;
+                        }
                     }
 
                     al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X0: %.1f Y0: %.1f", x0, y0);
@@ -362,6 +368,16 @@ int main(){
                     al_flip_display();
 
                     redraw = false;
+                    break;
+                case REFILL:
+                    queda_pri = seek_and_destroy(board_aux);
+                    if(queda_pri[0]  || queda_pri[1] || queda_pri[2] || queda_pri[3] || queda_pri[4] || queda_pri[5] || queda_pri[6] || queda_pri[7] ){
+                        state = DESTROI;
+                        animation_frame_counter = 0;
+                    }
+                    else{
+                        state = FIM;
+                    }
                     break;
                 case FIM : 
                     done = check_end(board);

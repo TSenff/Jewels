@@ -345,6 +345,56 @@ void res_destroi_cons(int *res1 , int *res2){
     }
 }
 
+int *seek_and_destroy(JEWEL_TYPE **b){
+    int *res_queda = calloc(8,sizeof(int));
+    if(res_queda == NULL)
+        return NULL;
+
+    int *direction_res = calloc(4,sizeof(int));
+    if(direction_res == NULL)
+        return NULL;
+
+    int *res_aux, direction;
+
+    for (int i = 0; i < 8; i++){
+        if( (direction = check_trio_horizontal(b,i,2)) ){
+            direction_res[0] = (direction == 2) ? 0 : 1 ;
+            direction_res[3] = (direction == 3) ? 0 : 1 ;
+
+            res_aux = destroi(b,i,2,direction_res,b[i][2]);
+            res_destroi_cons(res_queda, res_aux);
+        }
+        if( (direction = check_trio_horizontal(b,i,5)) ){
+            direction_res[0] = (direction == 2) ? 0 : 1 ;
+            direction_res[3] = (direction == 3) ? 0 : 1 ;
+
+            res_aux = destroi(b,i,5,direction_res,b[i][5]);
+            res_destroi_cons(res_queda, res_aux);
+        }
+        if( (direction = check_trio_vertical(b,2,i)) ){
+            direction_res[1] = (direction == 2) ? 0 : 1 ;
+            direction_res[2] = (direction == 3) ? 0 : 1 ;
+
+            res_aux = destroi(b,2,i,direction_res,b[2][i]);
+            res_destroi_cons(res_queda,res_aux);
+        }
+        if( (direction = check_trio_vertical(b,5,i)) ){
+            
+            direction_res[1] = (direction == 2) ? 0 : 1 ;
+            direction_res[2] = (direction == 3) ? 0 : 1 ;
+
+            res_aux = destroi(b,5,i,direction_res,b[5][i]);
+            res_destroi_cons(res_queda,res_aux);
+        }
+
+    }
+    return res_queda;
+}
+
+
+
+
+
 int resolve_movement(JEWEL_TYPE **b){
     printf("Resolvendo movimento\n");
     /*
@@ -363,7 +413,7 @@ int resolve_movement(JEWEL_TYPE **b){
         X X H X X H X X 
     
     */
-
+    /*
     int *res_queda = calloc(8,sizeof(int));
     if(res_queda == NULL)
         return 1;
@@ -419,6 +469,11 @@ int resolve_movement(JEWEL_TYPE **b){
         }
 
     }
+    */
+
+    int *res_queda;
+    res_queda = seek_and_destroy(b);
+
         printf("------\n");
         printf("Final [0 1 2 3 4 5 6 7  ]\n");
         printf("      [%i %i %i %i %i %i %i %i ]\n",res_queda[0],res_queda[1],res_queda[2],res_queda[3],res_queda[4],res_queda[5],res_queda[6],res_queda[7]);
