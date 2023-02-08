@@ -14,7 +14,6 @@ Otimizar verificação de fim de jogo
 Reescrever estoura usando check_vertical e check_horizontal
 
 # Problemas 
-Cai não funciona quando um movimento gera duas destruiçoes distintas que estão empilhadas
-É possivel mover sem que ocorra a destruição 
-Pedras em queda não calculam estouro
-Tirar funçao cai de dentro da funçao destroi
+
+jewels: /build/allegro5-keC96M/allegro5-5.2.6.0/src/bitmap_draw.c:140: al_draw_tinted_bitmap: Assertion `bitmap' failed.
+Abortado (imagem do núcleo gravada)

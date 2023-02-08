@@ -225,13 +225,11 @@ void switch_jewels(JEWEL_TYPE **board,int r1, int c1,int r2, int c2){
     board[r2][c2] = temp;
 }
 void refill(JEWEL_TYPE **board, int *info_queda){
-    printf("Refil nas colunas [%i, %i, %i, %i, %i, %i, %i, %i]\n",info_queda[0], info_queda[1],info_queda[2], info_queda[3],info_queda[4], info_queda[5],info_queda[6], info_queda[7]);
     int j;
     for (int i = 0; i < 8; i++){
         j=0;
         while (board[j][i] == EMPTY){
             board[j][i] = rand_jewel();    
-            printf("Nova joia na Coluna %i do tipo %i\n",i,board[j][i]);
             j++;
         }
     }
@@ -248,9 +246,7 @@ void cai(JEWEL_TYPE **board,int *info_queda){
     for (int i = 0; i < 8; i++){    
         if (info_queda[i]){
             for (int j = info_queda[i]-1; j < 8; j++){
-                printf("Verificando queda em [row = %i, Collum %i]\n",j,i);
                 if ( board[j][i] == EMPTY ){
-                    printf("Caindo em [row = %i, Collum %i]\n",j,i);
                     /* Leva o espaço vazio para o topo */
                     for (int k = j; k-1 > -1; k--)
                         switch_jewels(board,k,i,k-1,i);
@@ -280,11 +276,9 @@ int* destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
 
     /* Esquerda */
     if (directions[0]){
-        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
         for (i = column-1; i > -1 ; i--){
             if (board[row][i] != jt)
                 break;
-            printf("Esvaziando  em [row = %i, Collum %i]\n",i,column);
             board[row][i] = EMPTY; 
             queda[i]=row+1;   
         }
@@ -292,10 +286,8 @@ int* destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
 
     /* Direita  */
     if (directions[3]){
-        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
 
         for (i = column+1; i < 8; i++){
-            printf("Esvaziando  em [row = %i, Collum %i]\n",i,column);
 
             if (board[row][i] != jt)
                 break;
@@ -307,12 +299,10 @@ int* destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
     
     /* Cima     */    
     if (directions[1]){
-        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
         queda[column]=row+1;
         for (i = row-1; i > -1 ; i--){
             if (board[i][column] != jt)
                 break;
-            printf("Esvaziando  em [row = %i, Collum %i]\n",i,column);
             board[i][column] = EMPTY;
             queda[column]=i+1;
         }
@@ -320,12 +310,10 @@ int* destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
     
     /* Baixo    */    
     if (directions[2]){
-        printf("Destruindo em [row = %i, Collum %i]\n",row,column);
 
         for (i = row+1; i < 8; i++){
             if (board[i][column] != jt)
                 break;
-            printf("Esvaziando  em [row = %i, Collum %i]\n",i,column);
             board[i][column] = EMPTY;   
         }
     }
@@ -346,63 +334,14 @@ void res_destroi_cons(int *res1 , int *res2){
 }
 
 int *seek_and_destroy(JEWEL_TYPE **b){
-    int *res_queda = calloc(8,sizeof(int));
-    if(res_queda == NULL)
-        return NULL;
 
-    int *direction_res = calloc(4,sizeof(int));
-    if(direction_res == NULL)
-        return NULL;
-
-    int *res_aux, direction;
-
-    for (int i = 0; i < 8; i++){
-        if( (direction = check_trio_horizontal(b,i,2)) ){
-            direction_res[0] = (direction == 2) ? 0 : 1 ;
-            direction_res[3] = (direction == 3) ? 0 : 1 ;
-
-            res_aux = destroi(b,i,2,direction_res,b[i][2]);
-            res_destroi_cons(res_queda, res_aux);
-        }
-        if( (direction = check_trio_horizontal(b,i,5)) ){
-            direction_res[0] = (direction == 2) ? 0 : 1 ;
-            direction_res[3] = (direction == 3) ? 0 : 1 ;
-
-            res_aux = destroi(b,i,5,direction_res,b[i][5]);
-            res_destroi_cons(res_queda, res_aux);
-        }
-        if( (direction = check_trio_vertical(b,2,i)) ){
-            direction_res[1] = (direction == 2) ? 0 : 1 ;
-            direction_res[2] = (direction == 3) ? 0 : 1 ;
-
-            res_aux = destroi(b,2,i,direction_res,b[2][i]);
-            res_destroi_cons(res_queda,res_aux);
-        }
-        if( (direction = check_trio_vertical(b,5,i)) ){
-            
-            direction_res[1] = (direction == 2) ? 0 : 1 ;
-            direction_res[2] = (direction == 3) ? 0 : 1 ;
-
-            res_aux = destroi(b,5,i,direction_res,b[5][i]);
-            res_destroi_cons(res_queda,res_aux);
-        }
-
-    }
-    return res_queda;
-}
-
-
-
-
-
-int resolve_movement(JEWEL_TYPE **b){
-    printf("Resolvendo movimento\n");
     /*
         Como a busca por trios é feita: 
             X = ignorado
             V = Verifica na vertical
             H = Verifica na horizontal
             A = Verifica em ambos (H e V) 
+
         X X H X X H X X 
         X X H X X H X X 
         V V A V V A V V 
@@ -413,16 +352,16 @@ int resolve_movement(JEWEL_TYPE **b){
         X X H X X H X X 
     
     */
-    /*
+
     int *res_queda = calloc(8,sizeof(int));
     if(res_queda == NULL)
-        return 1;
+        return NULL;
 
     int *direction_res = calloc(4,sizeof(int));
     if(direction_res == NULL)
-        return 1;
-    int *res_aux, direction;
+        return NULL;
 
+    int *res_aux, direction;
 
     for (int i = 0; i < 8; i++){
         if( (direction = check_trio_horizontal(b,i,2)) ){
@@ -430,30 +369,24 @@ int resolve_movement(JEWEL_TYPE **b){
             direction_res[3] = (direction == 3) ? 0 : 1 ;
 
             res_aux = destroi(b,i,2,direction_res,b[i][2]);
-            printf("Trio na horizontal de [%i,2]\n",i);
-            printf("res_aux [0 1 2 3 4 5 6 7  ]\n");
-            printf("      [%i %i %i %i %i %i %i %i ]\n",res_aux[0],res_aux[1],res_aux[2],res_aux[3],res_aux[4],res_aux[5],res_aux[6],res_aux[7]);
-                res_destroi_cons(res_queda, res_aux);
+            res_destroi_cons(res_queda, res_aux);
+            free(res_aux);
         }
         if( (direction = check_trio_horizontal(b,i,5)) ){
             direction_res[0] = (direction == 2) ? 0 : 1 ;
             direction_res[3] = (direction == 3) ? 0 : 1 ;
 
             res_aux = destroi(b,i,5,direction_res,b[i][5]);
-            printf("Trio na horizontal de [%i,5]\n",i);
-            printf("res_aux [0 1 2 3 4 5 6 7  ]\n");
-            printf("      [%i %i %i %i %i %i %i %i ]\n",res_aux[0],res_aux[1],res_aux[2],res_aux[3],res_aux[4],res_aux[5],res_aux[6],res_aux[7]);
-                res_destroi_cons(res_queda, res_aux);
+            res_destroi_cons(res_queda, res_aux);
+            free(res_aux);
         }
         if( (direction = check_trio_vertical(b,2,i)) ){
             direction_res[1] = (direction == 2) ? 0 : 1 ;
             direction_res[2] = (direction == 3) ? 0 : 1 ;
 
             res_aux = destroi(b,2,i,direction_res,b[2][i]);
-            printf("Trio na Vertical de [2,%i]\n",i);
-            printf("res_aux [0 1 2 3 4 5 6 7  ]\n");
-            printf("      [%i %i %i %i %i %i %i %i ]\n",res_aux[0],res_aux[1],res_aux[2],res_aux[3],res_aux[4],res_aux[5],res_aux[6],res_aux[7]);
-                res_destroi_cons(res_queda,res_aux);
+            res_destroi_cons(res_queda,res_aux);
+            free(res_aux);
         }
         if( (direction = check_trio_vertical(b,5,i)) ){
             
@@ -461,37 +394,31 @@ int resolve_movement(JEWEL_TYPE **b){
             direction_res[2] = (direction == 3) ? 0 : 1 ;
 
             res_aux = destroi(b,5,i,direction_res,b[5][i]);
-            printf("Trio na Vertical de [5,%i]\n",i);
-            printf("res_aux [0 1 2 3 4 5 6 7  ]\n");
-            printf("      [%i %i %i %i %i %i %i %i ]\n",res_aux[0],res_aux[1],res_aux[2],res_aux[3],res_aux[4],res_aux[5],res_aux[6],res_aux[7]);
-    
             res_destroi_cons(res_queda,res_aux);
+            free(res_aux);
         }
 
     }
-    */
 
+    free(direction_res);
+    return res_queda;
+}
+
+
+
+
+
+int resolve_movement(JEWEL_TYPE **b){
+   
     int *res_queda;
     res_queda = seek_and_destroy(b);
-
-        printf("------\n");
-        printf("Final [0 1 2 3 4 5 6 7  ]\n");
-        printf("      [%i %i %i %i %i %i %i %i ]\n",res_queda[0],res_queda[1],res_queda[2],res_queda[3],res_queda[4],res_queda[5],res_queda[6],res_queda[7]);
-    
-    
     if(res_queda[0]  || res_queda[1] || res_queda[2] || res_queda[3] || res_queda[4] || res_queda[5] || res_queda[6] || res_queda[7] ){
-       
-        printf_board(b);
-        printf("------\n");
-        printf("Final [0 1 2 3 4 5 6 7  ]\n");
-        printf("      [%i %i %i %i %i %i %i %i ]\n",res_queda[0],res_queda[1],res_queda[2],res_queda[3],res_queda[4],res_queda[5],res_queda[6],res_queda[7]);
-    
-        
+        //printf_board(b);
         cai(b, res_queda);
         refill(b, res_queda);
         resolve_movement(b);
     }
-
+    free(res_queda);
     return 0;
 }
 

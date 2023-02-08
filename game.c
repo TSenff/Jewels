@@ -155,7 +155,7 @@ int main(){
                 switch (state){
                 case  DESTROI:
                         #ifdef DEBUGGER
-                        printf("Destroi\n");
+                        //printf("Destroi\n");
                         #endif
                         /* ----------- Animação --------*/
                         al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -171,7 +171,7 @@ int main(){
                                 }
                             }
                         }
-                        animation_frame_counter++;
+                        animation_frame_counter+=2;
                         if(animation_frame_counter > 100){
                             #ifdef DEBUGGER                
                             printf("Destroi -> Queda\n");
@@ -203,11 +203,11 @@ int main(){
                 /* Faz a troca */
                 case RETROCA:
                     #ifdef DEBUGGER
-                    printf("RE");
+                    //printf("RE");
                     #endif
                 case TROCA:
                     #ifdef DEBUGGER                
-                    printf("TROCA\n");
+                    //printf("TROCA\n");
                     #endif
                     /* ----------- Animação --------*/
                     al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -257,16 +257,15 @@ int main(){
                                 queda_aux = destroi(board_aux,pos0.y,pos0.x,estoura_aux, board[pos0.y][pos0.x]);
                                 
                                 /* Encontra o ponto vazio mais alto */
-                                /* Queda principal tem o ponto vazio mais alto */
-                                /* Queda auxiliar tem a quantidade de pontos vazios na coluna  */
+                                /* Queda principal recebe o ponto vazio mais alto */
+                                /* Queda auxiliar recebe a quantidade de pontos vazios na coluna  */
                                 for (int i = 0; i < 8; i++){
                                     queda_pri[i] = min(queda_pri[i],queda_aux[i]);  
                                     queda_aux[i] = 0;
                                     if (queda_pri[i] != 0){
                                         for (int j = queda_pri[i]-1; j < 8; j++){
-                                            if(board_aux[j][i] != EMPTY)
-                                                break;
-                                            queda_aux[i]++;
+                                            if(board_aux[j][i] == EMPTY)
+                                                queda_aux[i]++;
                                         }
                                     }
                                 }
@@ -311,6 +310,7 @@ int main(){
                                 }
                             }
                         }
+
                         if (queda_pri[i] != 0){
                             pos_aux.x = i;
                             pos_aux.y = -1;
@@ -329,12 +329,15 @@ int main(){
                                     switch_jewels(board_aux,j-1,i,j,i);
                                 }   
                                 queda_pri[i]++;
+                                queda_aux[i]--;
                             }
                         }
-                        
-                        printf_board(board);
-                        printf_board(board_aux);
 
+                        #ifdef DEBUGGER
+                            printf("QUEDA\n");
+                            printf("Auxiliar [0 1 2 3 4 5 6 7  ]\n");
+                            printf("         [%i %i %i %i %i %i %i %i ]\n",queda_aux[0],queda_aux[1],queda_aux[2],queda_aux[3],queda_aux[4],queda_aux[5],queda_aux[6],queda_aux[7]);
+                        #endif
 
                         /* Refill no Buffer */
                         for (int i = 0; i < 8; i++){
@@ -350,16 +353,19 @@ int main(){
                     
                         update_board(board,board_aux);                        
                         printf_board(board);
+
                         animation_frame_counter = 0;
                         if( !(queda_pri[0] || queda_pri[1] ||queda_pri[2] ||queda_pri[3] ||queda_pri[4] ||queda_pri[5] ||queda_pri[6] || queda_pri[7] ||queda_pri[8]) ){
-                            /* Sem animação 
-                            resolve_movement(board_aux);
-
-                            update_board(board,board_aux);                        
-
-                            state = FIM;
-                            */
+                            #ifdef DEBUGGER
+                                printf("QUEDA\n");
+                                printf("Auxiliar [0 1 2 3 4 5 6 7  ]\n");
+                                printf("         [%i %i %i %i %i %i %i %i ]\n",queda_aux[0],queda_aux[1],queda_aux[2],queda_aux[3],queda_aux[4],queda_aux[5],queda_aux[6],queda_aux[7]);
+                            #endif
                             state = REFILL;
+                            #ifdef DEBUGGER
+                                printf("QUEDA -> REFIL\n");
+                            #endif
+
                         }
                     }
 
@@ -370,13 +376,64 @@ int main(){
                     redraw = false;
                     break;
                 case REFILL:
-                    queda_pri = seek_and_destroy(board_aux);
-                    if(queda_pri[0]  || queda_pri[1] || queda_pri[2] || queda_pri[3] || queda_pri[4] || queda_pri[5] || queda_pri[6] || queda_pri[7] ){
-                        state = DESTROI;
-                        animation_frame_counter = 0;
+                    #ifdef DEBUGGER
+                        printf("REFIL\n");
+                        printf("Auxiliar [0 1 2 3 4 5 6 7  ]\n");
+                        printf("         [%i %i %i %i %i %i %i %i ]\n",queda_aux[0],queda_aux[1],queda_aux[2],queda_aux[3],queda_aux[4],queda_aux[5],queda_aux[6],queda_aux[7]);
+                    #endif
+                    /* Verifica o caso de REFIL ter mandado duas ou mais quedas intercaladas para QUEDA previamente
+                     * Se sim atualiza valores de queda primaria e continua para Queda
+                     */
+                    if( (queda_aux[0] || queda_aux[1] ||queda_aux[2] ||queda_aux[3] ||queda_aux[4] ||queda_aux[5] ||queda_aux[6] || queda_aux[7] ||queda_aux[8]) ){
+                        for (int i = 0; i < 8; i++){
+                            if (queda_aux[i] != 0){
+                                for (int j = queda_pri[i]-1; j < 8; j++){
+                                    if(board_aux[j][i] == EMPTY){
+                                        queda_pri[i] = j+1;
+                                        break;
+                                    }
+                                }
+                            }
+                        } 
+                        redraw = false;
+                        state = QUEDA;
+                        #ifdef DEBUGGER
+                            printf("REFIL -> QUEDA\n");
+                        #endif
                     }
-                    else{
-                        state = FIM;
+                    else{  
+
+                        /* Verifica se QUEDA causou a formação de novos conjuntos*/
+                        queda_pri = seek_and_destroy(board_aux);
+                        if(queda_pri[0]  || queda_pri[1] || queda_pri[2] || queda_pri[3] || queda_pri[4] || queda_pri[5] || queda_pri[6] || queda_pri[7] ){
+                            animation_frame_counter = 0;
+
+                            for (int i = 0; i < 8; i++){
+                                queda_aux[i] = 0;
+                                if (queda_pri[i] != 0){
+                                    for (int j = queda_pri[i]-1; j < 8; j++){
+                                        if(board_aux[j][i] == EMPTY)
+                                            queda_aux[i]++;
+                                    }
+                                }
+                            }
+
+                            #ifdef DEBUGGER
+                                printf("REFIL\n");
+                                printf("Auxiliar [0 1 2 3 4 5 6 7  ]\n");
+                                printf("         [%i %i %i %i %i %i %i %i ]\n",queda_aux[0],queda_aux[1],queda_aux[2],queda_aux[3],queda_aux[4],queda_aux[5],queda_aux[6],queda_aux[7]);
+                            #endif
+                            #ifdef DEBUGGER
+                                printf("REFIL -> DESTROI\n");
+                            #endif
+                            state = DESTROI;
+                        }   
+                        else{
+                            #ifdef DEBUGGER
+                                printf("REFIL -> FIM\n");
+                            #endif
+                            state = FIM;
+                        }
                     }
                     break;
                 case FIM : 
