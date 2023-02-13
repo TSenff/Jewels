@@ -36,3 +36,72 @@ ALLEGRO_COLOR jewel_color(JEWEL_TYPE jp){
             return al_map_rgb(255,255,255);
     }
 }
+int insere(int* score_board, int score){
+    int i = 0 , a,b;
+    while (i < SCORE_BOARD_SIZE){
+        if(score > score_board[i]){
+            a = score_board[i];
+            score_board[i] = score;
+            i++;
+            while ( i < SCORE_BOARD_SIZE ){
+                b = score_board[i];
+                score_board[i] = a; 
+                a = b;
+                i++;
+            }
+            break;
+        }
+        i++;
+    }
+    return 1;
+    
+}
+
+
+int write_scores(char *path, int *score){
+    FILE *F;
+    F = fopen(path,"w");
+    if(F == NULL)
+        return 0;
+
+    char *temp = malloc( sizeof(char)*10 );
+    if(temp == NULL)
+        return NULL; 
+
+
+    for (int i = 0; i < 5; i++){
+        if (score[i] == 0)
+            break;
+        sprintf(temp, "%i\n",score[i]);      
+        fputs(temp,F);
+    }
+    fclose(F);
+    return 1;
+}
+
+int* read_scores(char *path){
+    FILE *F;
+    printf("Reading Score\n");
+    F = fopen(path,"r");
+    if(F == NULL)
+        return NULL;
+    printf("Reading Score\n");
+
+    char *temp = malloc( sizeof(char)*10 );
+    if(temp == NULL)
+        return NULL; 
+
+    int *records = calloc( 5, sizeof(int) );
+    if(records == NULL)
+        return NULL;
+        
+    
+    for (int i = 0; i < 5; i++){
+        if( ( fgets(temp, 10, F) == NULL ))
+            break;
+        records[i] = atoi(temp);
+    }
+    fclose(F);
+    free(temp);
+    return records;
+}

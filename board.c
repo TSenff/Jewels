@@ -55,16 +55,16 @@ void free_board(JEWEL_TYPE **board){
     free(board);
 }
 
-JEWEL_TYPE rand_jewel(){
-    return rand()%5;
+JEWEL_TYPE rand_jewel(int level){
+    return rand()%(5+level);
 }
 
 
 void fill_board(JEWEL_TYPE **board){
-    srand(time(NULL));
+    srand(/*time(NULL)*/0);
     for (int i = 0; i < 8; i++){
         for (int j = 0; j < 8; j++){
-            board[j][i]=rand_jewel();
+            board[j][i]=rand_jewel(0);
         }
     }
 }
@@ -224,12 +224,13 @@ void switch_jewels(JEWEL_TYPE **board,int r1, int c1,int r2, int c2){
     board[r1][c1] = board[r2][c2];
     board[r2][c2] = temp;
 }
+
 void refill(JEWEL_TYPE **board, int *info_queda){
     int j;
     for (int i = 0; i < 8; i++){
         j=0;
         while (board[j][i] == EMPTY){
-            board[j][i] = rand_jewel();    
+            board[j][i] = rand_jewel(0);    
             j++;
         }
     }
@@ -325,6 +326,81 @@ int* destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE
     return queda;   
 }
 
+
+int* destroi_pontos(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE jt, int *points){
+
+    int *queda = calloc(8,sizeof(int));
+    if(queda == NULL)
+        return NULL;
+    
+    if (jt == EMPTY){
+        return queda;
+    }
+    
+    if ( !(directions[0] || directions[1] || directions[2]|| directions[3]) )
+        return queda;
+
+
+
+    int i;
+
+    /* Esquerda */
+    if (directions[0]){
+        for (i = column-1; i > -1 ; i--){
+            if (board[row][i] != jt)
+                break;
+            board[row][i] = EMPTY; 
+            queda[i]=row+1; 
+            *points+=10;  
+        }
+    }
+
+    /* Direita  */
+    if (directions[3]){
+
+        for (i = column+1; i < 8; i++){
+
+            if (board[row][i] != jt)
+                break;
+            board[row][i] = EMPTY;
+            queda[i]=row+1;   
+            *points+=10;  
+        }
+    }
+
+    
+    /* Cima     */    
+    if (directions[1]){
+        queda[column]=row+1;
+        for (i = row-1; i > -1 ; i--){
+            if (board[i][column] != jt)
+                break;
+            board[i][column] = EMPTY;
+            queda[column]=i+1;
+            *points+=10;  
+        }
+    }
+    
+    /* Baixo    */    
+    if (directions[2]){
+
+        for (i = row+1; i < 8; i++){
+            if (board[i][column] != jt)
+                break;
+            board[i][column] = EMPTY;   
+            *points+=10; 
+        }
+    }
+
+    if (!directions[1])
+        queda[column] = row+1;
+    
+    board[row][column] = EMPTY;
+    *points+=10;  
+
+    return queda;   
+}
+
 void res_destroi_cons(int *res1 , int *res2){
 
     for(int i = 0; i < 8; i++){
@@ -333,7 +409,71 @@ void res_destroi_cons(int *res1 , int *res2){
     }
 }
 
-int *seek_and_destroy(JEWEL_TYPE **b){
+
+/*
+
+
+int *seek_and_destroy(JEWEL_TYPE **b, int *pontos){
+
+
+    int *res_queda = calloc(8,sizeof(int));
+    if(res_queda == NULL)
+        return NULL;
+
+    int *direction_res = calloc(4,sizeof(int));
+    if(direction_res == NULL)
+        return NULL;
+
+    int *res_aux, direction;
+
+    for (int i = 0; i < 8; i++){
+        if( (direction = check_trio_horizontal(b,i,2)) ){
+            direction_res[0] = (direction == 2) ? 0 : 1 ;
+            direction_res[3] = (direction == 3) ? 0 : 1 ;
+
+            res_aux = destroi_pontos(b,i,2,direction_res,b[i][2],pontos);
+            res_destroi_cons(res_queda, res_aux);
+            free(res_aux);
+        }
+        if( (direction = check_trio_horizontal(b,i,5)) ){
+            direction_res[0] = (direction == 2) ? 0 : 1 ;
+            direction_res[3] = (direction == 3) ? 0 : 1 ;
+
+            res_aux = destroi_pontos(b,i,5,direction_res,b[i][5],pontos);
+            res_destroi_cons(res_queda, res_aux);
+            free(res_aux);
+        }
+        if( (direction = check_trio_vertical(b,2,i)) ){
+            direction_res[1] = (direction == 2) ? 0 : 1 ;
+            direction_res[2] = (direction == 3) ? 0 : 1 ;
+
+            res_aux = destroi_pontos(b,2,i,direction_res,b[2][i],pontos);
+            res_destroi_cons(res_queda,res_aux);
+            free(res_aux);
+        }
+        if( (direction = check_trio_vertical(b,5,i)) ){
+            
+            direction_res[1] = (direction == 2) ? 0 : 1 ;
+            direction_res[2] = (direction == 3) ? 0 : 1 ;
+
+            res_aux = destroi_pontos(b,5,i,direction_res,b[5][i],pontos);
+            res_destroi_cons(res_queda,res_aux);
+            free(res_aux);
+        }
+
+    }
+
+    free(direction_res);
+    return res_queda;
+}
+
+
+
+
+*/
+
+
+int *seek_and_destroy(JEWEL_TYPE **b, JEWEL_TYPE **b_aux, int *pontos){
 
     /*
         Como a busca por trios é feita: 
@@ -362,44 +502,27 @@ int *seek_and_destroy(JEWEL_TYPE **b){
         return NULL;
 
     int *res_aux, direction;
+    for (int n = 2; n <=5 ; n+=3){
+        for (int i = 0; i < 8; i++){
+            if( (direction = check_trio_horizontal(b,i,n)) ){
+                direction_res[0] = (direction == 2) ? 0 : 1 ;
+                direction_res[3] = (direction == 3) ? 0 : 1 ;
 
-    for (int i = 0; i < 8; i++){
-        if( (direction = check_trio_horizontal(b,i,2)) ){
-            direction_res[0] = (direction == 2) ? 0 : 1 ;
-            direction_res[3] = (direction == 3) ? 0 : 1 ;
+                res_aux = destroi_pontos(b_aux,i,n,direction_res,b[i][n],pontos);
+                res_destroi_cons(res_queda, res_aux);
+                free(res_aux);
+            }
+            if( (direction = check_trio_vertical(b,n,i)) ){
+                direction_res[1] = (direction == 2) ? 0 : 1 ;
+                direction_res[2] = (direction == 3) ? 0 : 1 ;
 
-            res_aux = destroi(b,i,2,direction_res,b[i][2]);
-            res_destroi_cons(res_queda, res_aux);
-            free(res_aux);
+                res_aux = destroi_pontos(b_aux,n,i,direction_res,b[n][i],pontos);
+                res_destroi_cons(res_queda,res_aux);
+                free(res_aux);
+            }
+
         }
-        if( (direction = check_trio_horizontal(b,i,5)) ){
-            direction_res[0] = (direction == 2) ? 0 : 1 ;
-            direction_res[3] = (direction == 3) ? 0 : 1 ;
-
-            res_aux = destroi(b,i,5,direction_res,b[i][5]);
-            res_destroi_cons(res_queda, res_aux);
-            free(res_aux);
-        }
-        if( (direction = check_trio_vertical(b,2,i)) ){
-            direction_res[1] = (direction == 2) ? 0 : 1 ;
-            direction_res[2] = (direction == 3) ? 0 : 1 ;
-
-            res_aux = destroi(b,2,i,direction_res,b[2][i]);
-            res_destroi_cons(res_queda,res_aux);
-            free(res_aux);
-        }
-        if( (direction = check_trio_vertical(b,5,i)) ){
-            
-            direction_res[1] = (direction == 2) ? 0 : 1 ;
-            direction_res[2] = (direction == 3) ? 0 : 1 ;
-
-            res_aux = destroi(b,5,i,direction_res,b[5][i]);
-            res_destroi_cons(res_queda,res_aux);
-            free(res_aux);
-        }
-
     }
-
     free(direction_res);
     return res_queda;
 }
@@ -407,11 +530,11 @@ int *seek_and_destroy(JEWEL_TYPE **b){
 
 
 
-
+/*
 int resolve_movement(JEWEL_TYPE **b){
-   
+    int i = 0;
     int *res_queda;
-    res_queda = seek_and_destroy(b);
+    res_queda = seek_and_destroy(b,&i);
     if(res_queda[0]  || res_queda[1] || res_queda[2] || res_queda[3] || res_queda[4] || res_queda[5] || res_queda[6] || res_queda[7] ){
         //printf_board(b);
         cai(b, res_queda);
@@ -421,94 +544,8 @@ int resolve_movement(JEWEL_TYPE **b){
     free(res_queda);
     return 0;
 }
+*/
 
-/* Faz o movimento de uma pedra respeitando as normas do jogo*/
-int valid_move(JEWEL_TYPE **board, int row, int column, int direction,JEWEL_TYPE jt){
-    
-    /* Verifica se a posição existe */
-    int n_col = column, n_row = row;
-    switch (direction){
-        case UP:
-            n_row--;
-            break;
-        case DOWN:
-            n_row++;
-            break;
-        case RIGHT:
-            n_col++;
-            break;
-        case LEFT:
-            n_col--;
-            break;
-    }    
-    if ( (n_col > 7 || n_col < 0 ) && (n_row > 7 || n_row < 0) )
-        return 0;
-    
-    /* Verifica se existe +3*/
-    int *estoura_pri = estoura(board,n_row,n_col,direction,jt);
-    int *estoura_aux = estoura(board,row,column,-1*direction,board[n_row][n_col]);
-    
-    if( !(estoura_aux[0] || estoura_aux[1] || estoura_aux[2] || estoura_aux[3]) && !(estoura_pri[0] || estoura_pri[1] || estoura_pri[2] || estoura_pri[3]) )
-        return 0;
-
-    /* Faz a troca */
-    int temp  = board[row][column];
-    board[row][column] = board[n_row][n_col];
-    board[n_row][n_col] = temp;
-
-    printf("%d / %d / %d / %d \n",estoura_pri[0],estoura_pri[1],estoura_pri[2],estoura_pri[3]);
-    
-    /* Esvazia */   
-    int *queda_pri = destroi(board,n_row,n_col,estoura_pri,jt);
-    int *queda_aux = destroi(board,row,column,estoura_aux,board[row][column]);
-    
-    printf("Principal [0 1 2 3 4 5 6 7  ]\n");
-    printf("          [%i %i %i %i %i %i %i %i ]\n",queda_pri[0],queda_pri[1],queda_pri[2],queda_pri[3],queda_pri[4],queda_pri[5],queda_pri[6],queda_pri[7]);
-
-    printf("Auxiliar [0 1 2 3 4 5 6 7  ]\n");
-    printf("         [%i %i %i %i %i %i %i %i ]\n",queda_aux[0],queda_aux[1],queda_aux[2],queda_aux[3],queda_aux[4],queda_aux[5],queda_aux[6],queda_aux[7]);
-
-
-    printf_board(board);
-    /* Derruba vazios */
-    if(direction == DOWN){
-        cai(board,queda_aux);
-        cai(board,queda_pri);
-    }
-    else{
-        cai(board,queda_pri);
-        cai(board,queda_aux);
-    }
-    printf("------\n");
-
-    printf("Principal [0 1 2 3 4 5 6 7  ]\n");
-    printf("          [%i %i %i %i %i %i %i %i ]\n",queda_pri[0],queda_pri[1],queda_pri[2],queda_pri[3],queda_pri[4],queda_pri[5],queda_pri[6],queda_pri[7]);
-
-    printf("Auxiliar [0 1 2 3 4 5 6 7  ]\n");
-    printf("         [%i %i %i %i %i %i %i %i ]\n",queda_aux[0],queda_aux[1],queda_aux[2],queda_aux[3],queda_aux[4],queda_aux[5],queda_aux[6],queda_aux[7]);
-
-    /* Cria novos */
-    for (int i = 0; i < 8; i++)
-        queda_pri[i] = min(queda_pri[i],queda_aux[i]);    
-    
-    
-    
-    
-    
-    printf("------\n");
-    printf("Final [0 1 2 3 4 5 6 7  ]\n");
-    printf("      [%i %i %i %i %i %i %i %i ]\n",queda_pri[0],queda_pri[1],queda_pri[2],queda_pri[3],queda_pri[4],queda_pri[5],queda_pri[6],queda_pri[7]);
-    
-
-    refill(board,queda_pri);
-    
-    printf("POW\n");
-    printf_board(board);
-
-    /* Verifica os que se moveram */
-    resolve_movement(board);
-    return 1;
-}
 
 int break_trio(JEWEL_TYPE **board, int row, int column){
     for (int i = 0; i < 5; i++){
@@ -589,6 +626,7 @@ int check_end(JEWEL_TYPE **board){
 
     for (int i = 0; i < 8; i++){
         for (int j = 0; j < 6; j++){
+            printf("[%i, %i]", i, j);
             /*                     Horizontal                     */
             /*        caso 1.1        */
             if ( board[i][j] == board[i][j+1]){
@@ -693,6 +731,6 @@ int check_end(JEWEL_TYPE **board){
         }
     }
    printf("\n");
-    return 1;
+   return 1;
    
 }

@@ -7,27 +7,45 @@ typedef enum JEWEL_TYPE{
     YELLOW,
     BLUE,
     GREEN,
-    MAGENTA
+    MAGENTA,
+    WHITE,
+    BROWN,
+    CYAN
 }JEWEL_TYPE;
 
 
 JEWEL_TYPE** create_board();
 
+
 void switch_jewels(JEWEL_TYPE **board,int r1, int c1,int r2, int c2);
+
 int check_trio_vertical(JEWEL_TYPE **board, int row, int column);
+
 int check_trio_horizontal(JEWEL_TYPE **board, int row, int column);
+
 int* estoura(JEWEL_TYPE **board, int row, int column,int direction, JEWEL_TYPE jt);
+
 void cai(JEWEL_TYPE **board,int *info_queda);
+
 void update_board(JEWEL_TYPE **board, JEWEL_TYPE ** current);
-JEWEL_TYPE rand_jewel();
+
+JEWEL_TYPE rand_jewel(int level);
+
 void refill(JEWEL_TYPE **board, int *info_queda);
+
 int resolve_movement(JEWEL_TYPE **b);
-int *seek_and_destroy(JEWEL_TYPE **b);
+
+int *seek_and_destroy(JEWEL_TYPE **b, JEWEL_TYPE **b_aux, int *pontos);
+
+int* destroi_pontos(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE jt, int *points);
 
 void free_board(JEWEL_TYPE **board);
 
+
 void fill_board(JEWEL_TYPE **board);
+
 JEWEL_TYPE ** copy_board(JEWEL_TYPE **board);
+
 int* destroi(JEWEL_TYPE **board, int row, int column,int directions[],JEWEL_TYPE jt);
 
 int min(int a, int b);
