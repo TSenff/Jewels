@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <allegro5/allegro5.h>
 #include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_audio.h>
@@ -69,15 +70,17 @@ void draw_score(int points, ALLEGRO_FONT* font, int *score_board){
 
 int main(){
     /* Inicializando Alegro  */
-    check_init(al_init(), "Allegro");
-    check_init(al_install_keyboard(),"Keyboard");
-    check_init(al_install_mouse(),"Mouse");
-    check_init(al_init_primitives_addon(),"Primitives");
-    check_init(al_init_image_addon(),"Imagens");
-    check_init(al_install_audio(), "audio");
-    check_init(al_init_acodec_addon(), "audio codecs");
-    check_init(al_reserve_samples(16), "reserve samples");
-
+    check_init(al_init()                 , "Allegro");
+    check_init(al_install_keyboard()     , "Keyboard");
+    check_init(al_install_mouse()        , "Mouse");
+    check_init(al_init_primitives_addon(), "Primitives");
+    check_init(al_init_image_addon()     , "Imagens");
+    check_init(al_install_audio()        , "audio");
+    check_init(al_init_acodec_addon()    , "audio codecs");
+    check_init(al_reserve_samples(16)    , "reserve samples");
+    check_init(al_init_font_addon()      , "Fontes");
+    check_init(al_init_ttf_addon()       , "Fontes ttf");
+    
     ALLEGRO_TIMER* timer = al_create_timer(1.0 / 60.0);
     check_init(timer, "timer");
 
@@ -87,7 +90,8 @@ int main(){
     ALLEGRO_DISPLAY* disp = al_create_display(DISPLAY_W, DISPLAY_H);
     check_init(disp, "display");
 
-    ALLEGRO_FONT* font = al_create_builtin_font();
+//    ALLEGRO_FONT* font = al_create_builtin_font();
+    ALLEGRO_FONT* font = al_load_ttf_font("resources/GermaniaOne-Regular.ttf",30,0);
     check_init(font, "font");
 
 
@@ -103,12 +107,17 @@ int main(){
     jewel_bitmap[GREEN]    = al_load_bitmap("resources/green_jewel_no_bkg.png"); 
     jewel_bitmap[YELLOW]   = al_load_bitmap("resources/yellow_jewel_no_bkg.png");  
     jewel_bitmap[MAGENTA]  = al_load_bitmap("resources/magenta_jewel_no_bkg.png");
-    jewel_bitmap[BROWN]    = al_load_bitmap("resources/brown_jewel.png");
-    jewel_bitmap[WHITE]    = al_load_bitmap("resources/white_jewel.png");
-    jewel_bitmap[CYAN]     = al_load_bitmap("resources/cyan_jewel.png");
+    //jewel_bitmap[BROWN]    = al_load_bitmap("resources/brown_jewel.png");
+    //jewel_bitmap[WHITE]    = al_load_bitmap("resources/white_jewel.png");
+    //jewel_bitmap[CYAN]     = al_load_bitmap("resources/cyan_jewel.png");
+
+    jewel_bitmap[BROWN]    = al_load_bitmap("resources/green_jewel.png");
+    jewel_bitmap[WHITE]    = al_load_bitmap("resources/red_jewel.png");
+    jewel_bitmap[CYAN]     = al_load_bitmap("resources/yellow_jewel.png");
+
 
     /* Inicializando Audios */
-
+/*
     ALLEGRO_SAMPLE* destroi_sound =al_load_sample("resources/Audio/plim.wav");
     check_init(destroi_sound,"Som: Destroi");
     ALLEGRO_SAMPLE* move_sound =al_load_sample("resources/Audio/swoosh.wav");
@@ -120,7 +129,7 @@ int main(){
     check_init(miss_sound,"Som: falha");
     ALLEGRO_SAMPLE* fall_sound =al_load_sample("resources/Audio/end_fall.wav");
     check_init(fall_sound,"Som: queda");
-
+*/
     /* Registrando Eventos */
     al_register_event_source(queue, al_get_keyboard_event_source());
     al_register_event_source(queue, al_get_display_event_source(disp));
@@ -134,14 +143,13 @@ int main(){
     ALLEGRO_MOUSE_STATE m_state;
     int pontos = 0;
     /* Pontos */
+
     int level = 0;
     int *scores;
-    printf("Pontos\n");
     scores = read_scores(SCORE_FILE);
     if (scores == NULL)
         return 1;
 
-    printf("Pontos fim\n");
 
     /* Mouse*/
     short int click = 0;
@@ -219,8 +227,8 @@ int main(){
     /* Flags */
     state = NEUTRO; 
 
-    /* Starte Song*/
-    al_play_sample(default_music, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
+    /* Start Song*/
+    //al_play_sample(default_music, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
 
     /* Loop*/
     al_start_timer(timer);
@@ -349,13 +357,13 @@ int main(){
                                 }
                                 
                                 state = DESTROI;
-                                al_play_sample(destroi_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                                //al_play_sample(destroi_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                             }
                             else{
                                 #ifdef DEBUGGER
                                 printf("Troca -> Retroca\n");
                                 #endif
-                                al_play_sample(miss_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                                //al_play_sample(miss_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                                 state = RETROCA;
                             }
                             
@@ -442,7 +450,7 @@ int main(){
                                 printf("         [%i %i %i %i %i %i %i %i ]\n",queda_aux[0],queda_aux[1],queda_aux[2],queda_aux[3],queda_aux[4],queda_aux[5],queda_aux[6],queda_aux[7]);
                             #endif
                             state = REFILL;
-                            al_play_sample(fall_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                            //al_play_sample(fall_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 
                             #ifdef DEBUGGER
                                 printf("QUEDA -> REFIL\n");
@@ -500,7 +508,7 @@ int main(){
                                     }
                                 }
                             }
-                            al_play_sample(destroi_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                            //al_play_sample(destroi_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                             #ifdef DEBUGGER
                                 printf("REFIL\n");
                                 printf("Auxiliar [0 1 2 3 4 5 6 7  ]\n");
@@ -586,7 +594,7 @@ int main(){
                                 #ifdef DEBUGGER
                                 printf("Horizontal\n");
                                 #endif
-                                al_play_sample(move_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                                //al_play_sample(move_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                                 direction = 2 * (pos1.x-pos0.x);
                                 state = TROCA;
                             }
@@ -596,7 +604,7 @@ int main(){
                                     #ifdef DEBUGGER
                                     printf("Vertical\n");
                                     #endif
-                                    al_play_sample(move_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                                    //al_play_sample(move_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                                     direction = 1 * (pos0.y-pos1.y);
                                     state = TROCA;
                                 }
@@ -625,7 +633,7 @@ int main(){
             break;
 
         if(redraw && al_is_event_queue_empty(queue)){
-            al_clear_to_color(al_map_rgb(0, 0, 0));
+            al_clear_to_color(al_map_rgb(0, 163, 163));
             draw_score(pontos,font,scores);
             al_draw_rectangle(BOARD_W,BOARD_H,BOARD_W+JEWEL_PIX*8,BOARD_H+JEWEL_PIX*8,al_map_rgb(255,255,255),1);        
             draw_score(pontos,font, scores);
@@ -649,12 +657,13 @@ int main(){
     }
 
     free_board(board);
+/*
     al_destroy_sample(move_sound);
     al_destroy_sample(destroi_sound);
     al_destroy_sample(default_music);
     al_destroy_sample(miss_sound);
     al_destroy_sample(fall_sound);
-
+*/
     al_destroy_font(font);
     al_destroy_display(disp);
     al_destroy_timer(timer);

@@ -66,7 +66,7 @@ int write_scores(char *path, int *score){
 
     char *temp = malloc( sizeof(char)*10 );
     if(temp == NULL)
-        return NULL; 
+        return 0; 
 
 
     for (int i = 0; i < 5; i++){
