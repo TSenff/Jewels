@@ -61,7 +61,7 @@ JEWEL_TYPE rand_jewel(int level){
 
 
 void fill_board(JEWEL_TYPE **board){
-    srand(/*time(NULL)*/0);
+    srand(time(NULL)/*0*/);
     for (int i = 0; i < 8; i++){
         for (int j = 0; j < 8; j++){
             board[j][i]=rand_jewel(0);
