@@ -6,6 +6,20 @@
 #include "board.h"
 
 
+#define SCORE_FILE "resources/pontos.txt"
+
+enum STATE_E {MENU,DELAY, NEUTRO, TROCA, DESTROI, RETROCA, QUEDA, REFILL, FIM} ;
+typedef enum STATE_E STATE;
+/* Tela */
+#define DISPLAY_W  1024
+#define DISPLAY_H  768
+
+/* Tabuleiro */
+#define JEWEL_PIX 80
+#define BOARD_W 350
+#define BOARD_H 50
+
+
 #define SCORE_BOARD_SIZE 5
 
 struct  coord_s{

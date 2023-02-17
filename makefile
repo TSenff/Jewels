@@ -6,25 +6,10 @@ LFLAG= $(ALLEGRO)
 
 
 
-all : game.o auxiliar.o board.o
-	$(CC) $(CFLAG) game.o auxiliar.o board.o -o jewels $(LFLAG)
+all : game.o auxiliar.o board.o interface.o
+	$(CC) $(CFLAG) game.o auxiliar.o board.o interface.o -o jewels $(LFLAG)
 
-#Outros metodos de compilar
-
-# Roda o jogo sem interface grafica 
-terminal : terminal.o board.o auxiliar.o
-	$(CC) $(CFLAG)  terminal.o board.o auxiliar.o -o terminal $(LFLAG)
-
-# Area para teste, remover depois 
-teste : main.o board.o auxiliar.o
-	$(CC) $(CFLAG)  main.0 board.o auxiliar.o -o teste $(LFLAG) 
-
-
-# Objetos 
-terminal.o : terminal.c board.h auxiliar.h
-	$(CC) -c $(CFLAG)  terminal.c -o terminal.o 
-
-game.o : game.c auxiliar.h board.h
+game.o : game.c auxiliar.h board.h interface.h
 	$(CC) -c   $(CFLAG) game.c
 
 auxiliar.o: auxiliar.c
@@ -33,9 +18,11 @@ auxiliar.o: auxiliar.c
 board.o : board.c
 	$(CC) -c $(CFLAG) board.c
 
+interface.o : interface.c interface.h 
+	$(CC) -c $(CFLAG) interface.c -lm
 
 clean : 
 	rm -f *.o
 
 purge : clean
-	rm -f jewels teste terminal
+	rm -f jewels

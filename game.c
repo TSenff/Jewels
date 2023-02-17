@@ -10,161 +10,9 @@
 
 #include "auxiliar.h"
 #include "board.h"
-
-#define SCORE_FILE "resources/pontos.txt"
-
-/* Tela */
-#define DISPLAY_W  1024
-#define DISPLAY_H  768
-
-/* Tabuleiro */
-#define JEWEL_PIX 80
-#define BOARD_W 350
-#define BOARD_H 50
+#include "interface.h"
 
 
-enum {MENU, NEUTRO, TROCA, DESTROI, RETROCA, QUEDA, REFILL, FIM} state ;
-
-
-/**
- * @brief 
- * 
- * @param i ROW 
- * @param j COLLUM
- * @param jewels_bitmap 
- * @param jp 
- */
-void draw_jewel(int i,int j,ALLEGRO_BITMAP** jewels_bitmap,JEWEL_TYPE jp){
-    al_draw_bitmap(jewels_bitmap[jp], BOARD_W+JEWEL_PIX*i,BOARD_H+JEWEL_PIX*j, 0);
-}
-
-/**
- * @brief 
- * 
- * @param i ROW 
- * @param j COLLUM
- * @param jewels_bitmap 
- * @param jp 
- */
-void draw_jewel_move(coord ini, int i_valid, int j_valid ,ALLEGRO_BITMAP** jewels_bitmap,JEWEL_TYPE jp_ini, int *i){
-    al_draw_bitmap(jewels_bitmap[jp_ini], BOARD_W+JEWEL_PIX*(ini.x) - i_valid*(*i+1) ,BOARD_H+JEWEL_PIX*(ini.y) - j_valid*(*i+1), 0);
-}
-
-void draw_jewel_transparency(int i,int j, ALLEGRO_BITMAP** jewels_bitmap, JEWEL_TYPE jp_ini, int k){
-    al_draw_tinted_bitmap(jewels_bitmap[jp_ini], al_map_rgb_f(((float)100-(k))/100,((float)100-(k))/100,((float)100-(k))/100),BOARD_W+JEWEL_PIX*(i), BOARD_H+JEWEL_PIX*(j), 0);
-}
-
-void draw_score(int points, ALLEGRO_FONT* font, ALLEGRO_FONT* font_small, int *score_board){
-
-    al_draw_filled_rectangle(JEWEL_PIX/2 -10, BOARD_H -10, BOARD_W-JEWEL_PIX/2 +10,BOARD_H+JEWEL_PIX*8 +10 ,al_map_rgb(80,80,80));        
-    al_draw_filled_rectangle(JEWEL_PIX/2,BOARD_H , BOARD_W-JEWEL_PIX/2,BOARD_H+JEWEL_PIX*8,al_map_rgb(100,100,100));        
-
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 110, 65, 0, "%09i", points);
-    al_draw_filled_rectangle(JEWEL_PIX/2 -10, 110, BOARD_W-JEWEL_PIX/2 +10,120 +10 ,al_map_rgb(80,80,80));        
-
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 120, 140, 0, "Ranking");
-    for (int i = 0; i < SCORE_BOARD_SIZE; i++){
-        if (score_board[i] == 0 )
-            break;
-        al_draw_textf(font, al_map_rgb(255, 255, 255), 50,200+i*50, 0, "%i - %i", i+1, score_board[i]);
-    }   
-    
-    al_draw_textf(font_small, al_map_rgb(255, 255, 255), JEWEL_PIX/2 +10,BOARD_H+JEWEL_PIX*8 -30, 0, "[H] ou [F1] para Ajuda");
-    
-}
-
-void draw_endgame_screen(int points, ALLEGRO_FONT* font, int *score_board){
-
-    al_draw_filled_rectangle(140, 140, 910, 660,al_map_rgb(80,80,80));        
-    al_draw_filled_rectangle(150, 150, 900, 650,al_map_rgb(100,100,100));        
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 160, 160, 0, "Parabêns sua pontuação foi: %09i", points);
-    al_draw_filled_rectangle(150, 200, 900, 210,al_map_rgb(80,80,80));        
-
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 450, 250, 0, "Ranking");
-    for (int i = 0; i < SCORE_BOARD_SIZE; i++){
-        if (score_board[i] == 0 )
-            break;
-        al_draw_textf(font, al_map_rgb(255, 255, 255), 450  ,300+i*50, 0, "%i - %i", i+1, score_board[i]);
-    }  
-
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 160, 600, 0, "Aperte [R] retornar ao Menu    ");
-}
-
-void draw_help_screen(ALLEGRO_FONT* font, ALLEGRO_FONT  *font_small){
-
-    al_draw_filled_rectangle(140, 140, 910, 660,al_map_rgb(80,80,80));        
-    al_draw_filled_rectangle(150, 150, 900, 650,al_map_rgb(100,100,100));        
-    al_draw_filled_rectangle(140, 140, 900, 210,al_map_rgb(80,80,80));        
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 160, 160, 0, "Ajuda");
-
-    al_draw_textf(font_small, al_map_rgb(255, 255, 255), 160, 260, 0, "Use o Mouse para selecionar uma joia e selecione uma joia adjacente para tentar move-las ");
-    al_draw_textf(font_small, al_map_rgb(255, 255, 255), 160, 280, 0, "Um click em qualquer local que não seja uma joia não adjacente desceleciona a joia anterior ");
-    al_draw_textf(font_small, al_map_rgb(255, 255, 255), 160, 300, 0, "Novas Joias são adicionadas quanto maior a sua pontuação ");
-
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 160, 550, 0, "[Esc] Retorna para o menu");
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 160, 600, 0, "Aperte [h] para retornar");
-}
-
-void draw_game_screen(ALLEGRO_FONT* font,ALLEGRO_FONT *font_small,int pontos,int*scores,int click,coord pos0, JEWEL_TYPE **board, ALLEGRO_BITMAP **jewel_bitmap, short int help){
-            al_clear_to_color(al_map_rgb(50, 50, 50));
-            draw_score(pontos,font,font_small, scores);
-            al_draw_filled_rectangle(BOARD_W -10,BOARD_H -10,BOARD_W+JEWEL_PIX*8 + 10,BOARD_H+JEWEL_PIX*8+10,al_map_rgb(80,80,80));        
-            al_draw_filled_rectangle(BOARD_W,BOARD_H,BOARD_W+JEWEL_PIX*8,BOARD_H+JEWEL_PIX*8,al_map_rgb(0,0,0));        
-            /* Desenha Marcador de Joia */
-            if(click)
-                al_draw_filled_rectangle(BOARD_W+JEWEL_PIX*(pos0.x)-5,BOARD_H+JEWEL_PIX*(pos0.y)-5,BOARD_W+JEWEL_PIX*(pos0.x+1)-5,BOARD_H+JEWEL_PIX*(pos0.y+1)-5,al_map_rgba_f(0.2,0.2,0.2,0.1));        
-            
-            /* Desenha todas as joias */
-            for(int i= 0 ; i<8;i++){
-                for(int j= 0 ; j<8;j++){
-                    draw_jewel(i,j,jewel_bitmap,board[j][i]);
-                }
-            }
-
-            if (state == FIM)
-                draw_endgame_screen(pontos,font, scores);
-
-            if (help)
-                draw_help_screen(font,font_small);
-}
-
-void draw_menu_screen(ALLEGRO_FONT* font,ALLEGRO_FONT* font_small,short int rank,short int info,int *score_board,short int snap){
-    al_clear_to_color(al_map_rgb(50, 50, 50));
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 100, 0, "JEWELS");
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 400, 0, "[J]   Jogar");
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 450, 0, "[R]   Ranking");
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 500, 0, "[H]   Informações");
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 550, 0, "[Esc] Sair");
-    if (info ){
-            al_draw_filled_rectangle(490, 140, 910, 660,al_map_rgb(80,80,80));        
-            al_draw_filled_rectangle(500, 150, 900, 650,al_map_rgb(100,100,100));        
-            al_draw_filled_rectangle(500, 150, 900, 210,al_map_rgb(80,80,80));        
-            al_draw_textf(font, al_map_rgb(255, 255, 255), 510, 160, 0, "Ajuda");
-            al_draw_textf(font_small, al_map_rgb(255, 255, 255), 510, 240, 0, "Autor: Thiago da C. P. Senff");
-            al_draw_textf(font_small, al_map_rgb(255, 255, 255), 540, 270, 0, "Creditos a Terceiros: ");
-            al_draw_textf(font_small, al_map_rgb(255, 255, 255), 510, 300, 0, "Musica: Kitten Caboodle (Cat Quest II) ");
-            al_draw_textf(font_small, al_map_rgb(255, 255, 255), 510, 330, 0, "Fonte:  Germania One (Cat Quest II) ");
-            al_draw_textf(font_small, al_map_rgb(255, 255, 255), 540, 360, 0, "Cheat Code : ");
-            al_draw_textf(font_small, al_map_rgb(255, 255, 255), 510, 390, 0, "[S] Durante o jogo : %s",(snap)?"Ligado":"Desligado");
-    }
-    if (rank){
-        al_draw_filled_rectangle(490, 140, 910, 660,al_map_rgb(80,80,80));        
-        al_draw_filled_rectangle(500, 150, 900, 650,al_map_rgb(100,100,100));        
-        al_draw_filled_rectangle(500, 150, 900, 210,al_map_rgb(80,80,80));        
-        al_draw_textf(font, al_map_rgb(255, 255, 255), 510, 160, 0, "Rank");
-        for (int i = 0; i < SCORE_BOARD_SIZE; i++){
-        if (score_board[i] == 0 ){
-            al_draw_textf(font, al_map_rgb(255, 255, 255), 510  ,240+i*50, 0, "%i - ", i+1);
-        }
-        else{
-            al_draw_textf(font, al_map_rgb(255, 255, 255), 510  ,240+i*50, 0, "%i - %i", i+1, score_board[i]);
-        }
-    }  
-
-    }
-    
-
-}
 
 
 int main(){
@@ -189,7 +37,6 @@ int main(){
     ALLEGRO_DISPLAY* disp = al_create_display(DISPLAY_W, DISPLAY_H);
     check_init(disp, "display");
 
-//    ALLEGRO_FONT* font = al_create_builtin_font();
     ALLEGRO_FONT* font = al_load_ttf_font("resources/GermaniaOne-Regular.ttf",30,0);
     check_init(font, "font");
 
@@ -224,6 +71,8 @@ int main(){
     check_init(miss_sound,"Som: falha");
     ALLEGRO_SAMPLE* fall_sound =al_load_sample("resources/Audio/end_fall.wav");
     check_init(fall_sound,"Som: queda");
+    ALLEGRO_SAMPLE* secret_sound =al_load_sample("resources/Audio/secret.wav");
+    check_init(fall_sound,"Som: Segredo");
 
     /* Registrando Eventos */
     al_register_event_source(queue, al_get_keyboard_event_source());
@@ -232,20 +81,20 @@ int main(){
     al_register_event_source(queue, al_get_mouse_event_source());
     
     /*      Variaveis e Preparaçoes para o loop      */
+    STATE state = MENU;
     bool done = false;
     bool redraw = true;
     ALLEGRO_EVENT event;
     ALLEGRO_MOUSE_STATE m_state;
     int pontos = 0;
-    short int snap;
+    short int snap = 0;
     /* Pontos */
 
     int level = 0;
-    int *scores;
-    scores = read_scores(SCORE_FILE);
-    if (scores == NULL)
+    int *score_board;
+    score_board = read_scores(SCORE_FILE);
+    if (score_board == NULL)
         return 1;
-
 
     /* Mouse*/
     short int click = 0;
@@ -262,24 +111,40 @@ int main(){
     int *estoura_pri, *estoura_aux;
     int *queda_pri, *queda_aux;
 
-    /* animação */
+    /* animação/tela */
     int animation_frame_counter = 0;
     short int help = 0;
     short int rank = 0;
-    /* Tabuleiro */
-    int **b;
-    b = malloc(sizeof(int*)*8);
-    for(int i = 0; i < 8; i++)
-        b[i] = calloc(8,sizeof(int));
 
-    int **board;
-    int **board_aux ;
+    /* Tabuleiro */
+    int **board, **board_aux ;
+
+    board = create_board();
+    if(board == NULL){
+        return 1;
+    }
+    
+    fill_board(board);
+    validate_start(board);
+    
+    board_aux = copy_board(board);
+    
+    if(board_aux == NULL){
+        return 1;
+    }
+    
+
 
     int *buffer_jewels = malloc(sizeof(int)*8);
     if (buffer_jewels == NULL)
         return 1;    
 
-    
+    for (int i = 0; i < 7; i++){
+        buffer_jewels[i] = rand_jewel(level);
+    }    
+
+
+
 
     /* Flags */
     state = MENU; 
@@ -289,7 +154,7 @@ int main(){
 
     /* Loop*/
     al_start_timer(timer);
-    while(1){
+    while(!done){
         al_wait_for_event(queue, &event);
         switch(event.type){
             case ALLEGRO_EVENT_TIMER:
@@ -298,11 +163,10 @@ int main(){
                         #ifdef DEBUGGER
                         printf("Destroi\n");
                         #endif
-                        printf("pow");
 
                         /* ----------- Animação --------*/
                         al_clear_to_color(al_map_rgb(50, 50, 50));
-                        draw_score(pontos,font,font_small, scores);
+                        draw_score(pontos,font,font_small, score_board);
                         al_draw_filled_rectangle(BOARD_W -10,BOARD_H -10,BOARD_W+JEWEL_PIX*8 + 10,BOARD_H+JEWEL_PIX*8+10,al_map_rgb(80,80,80));        
                         al_draw_filled_rectangle(BOARD_W,BOARD_H,BOARD_W+JEWEL_PIX*8,BOARD_H+JEWEL_PIX*8,al_map_rgb(0,0,0));   
                         
@@ -355,7 +219,7 @@ int main(){
                     #endif
                     /* ----------- Animação --------*/
                     al_clear_to_color(al_map_rgb(50, 50, 50));
-                    draw_score(pontos,font,font_small, scores);
+                    draw_score(pontos,font,font_small, score_board);
                     al_draw_filled_rectangle(BOARD_W -10,BOARD_H -10,BOARD_W+JEWEL_PIX*8 + 10,BOARD_H+JEWEL_PIX*8+10,al_map_rgb(80,80,80));        
                     al_draw_filled_rectangle(BOARD_W,BOARD_H,BOARD_W+JEWEL_PIX*8,BOARD_H+JEWEL_PIX*8,al_map_rgb(0,0,0));   
                     /* Desenha todas as joias menos as que estão se movendo */
@@ -439,7 +303,7 @@ int main(){
 
                     /* ----------- Animação -------- */
                     al_clear_to_color(al_map_rgb(50, 50, 50));
-                    draw_score(pontos,font,font_small, scores);
+                    draw_score(pontos,font,font_small, score_board);
                     al_draw_filled_rectangle(BOARD_W -10,BOARD_H -10,BOARD_W+JEWEL_PIX*8 + 10,BOARD_H+JEWEL_PIX*8+10,al_map_rgb(80,80,80));        
                     al_draw_filled_rectangle(BOARD_W,BOARD_H,BOARD_W+JEWEL_PIX*8,BOARD_H+JEWEL_PIX*8,al_map_rgb(0,0,0));   
                     animation_frame_counter = animation_frame_counter+4;
@@ -591,36 +455,49 @@ int main(){
                     break;
                 case FIM : 
                     done = check_end(board);
-                    printf("Xablau???\n");
                     if (done == 1){
-                        //scores[1]=pontos;
-                        insere(scores,pontos);
-                        write_scores(SCORE_FILE,scores);
+                        insere(score_board,pontos);
+                        write_scores(SCORE_FILE,score_board);
                         done = 0;
                     }
                     else{
                         state = NEUTRO;
                         
                     }
-                    printf("Pontuação : %i \n",pontos);
+
                     if (pontos > 200){
                         level = 1;
                     }
-                    if (pontos > 400){
-                        level = 2;
-                    }
-                    if (pontos > 600){
-                        level = 3;
+                    else{
+                        if (pontos > 400){
+                            level = 2;
+                        }
+                        else{
+                            level = 3;
+                        }
                     }
 
                     redraw = true;
+                    break;
+                case DELAY:
+                        animation_frame_counter--;
+                        redraw = false;
+                    /* Fim do delay */
+                    if(animation_frame_counter <= 0){
+                        animation_frame_counter = 0;
+
+                        /* Continua da ativação de Snap para Destroi*/
+                        state = DESTROI;
+                        pontos += 320;
+                        al_play_sample(destroi_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                        state = DESTROI;
+                        redraw = false;
+                    }
                     break;
                 default:
                     redraw = true;
                     break;
                 }
-
-
 
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
@@ -637,16 +514,13 @@ int main(){
                         x0 = m_state.x;
                         y0 = m_state.y;
                         pos0 = click_pos(x0,y0);
+
                         /* Verifica se foi um click valido */
                         if(pos0.x > -1 && pos0.y > -1 && pos0.x < 8 && pos0.y < 8){
                             click++;
-                            /* Ativa o marcador de joia selecionada */
-                            b[pos0.x][pos0.y] = 1 ;
                         }
                         break;
                     case 1 :
-                        /* Desliga o Marcador de joia selecionada */
-                        b[pos0.x][pos0.y] = 0;
 
                         x1 = m_state.x;
                         y1 = m_state.y;
@@ -667,7 +541,7 @@ int main(){
                                 /* Vertical */
                                 if(abs(pos0.y-pos1.y) == 1 && pos0.x == pos1.x ){
                                     #ifdef DEBUGGER
-                                    printf("Vertical\n");
+                                        printf("Vertical\n");
                                     #endif
                                     al_play_sample(move_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                                     direction = 1 * (pos0.y-pos1.y);
@@ -675,11 +549,10 @@ int main(){
                                 }
                             }
                             #ifdef DEBUGGER
-                            /* Mensagem Debbug*/
-                            printf("pos0 [%i , %i ]\n", pos0.y, pos0.x);
-                            printf("pos1 [%i , %i ]\n", pos1.y, pos1.x);
-                            printf("Direction %i\n",direction);
-                            printf("Color %i\n",board[pos0.y][pos0.x]);
+                                printf("pos0 [%i , %i ]\n", pos0.y, pos0.x);
+                                printf("pos1 [%i , %i ]\n", pos1.y, pos1.x);
+                                printf("Direction %i\n",direction);
+                                printf("Color %i\n",board[pos0.y][pos0.x]);
                             #endif
                         }
                         click = 0;
@@ -687,102 +560,8 @@ int main(){
                 }
                 break;
             case ALLEGRO_EVENT_KEY_DOWN:
-                    switch (event.keyboard.keycode)
-                    {
-                    case ALLEGRO_KEY_F1:
-                    case ALLEGRO_KEY_H:
-                       help = !help; 
-                       rank = 0;
-                       break;
-                    case ALLEGRO_KEY_J:
-                        if (state == MENU){
-                            state = NEUTRO;
-                            board = create_board();
-                            if(board == NULL){
-                                return 1;
-                            }
-
-                            fill_board(board);
-                            validate_start(board);
-
-                            board_aux = copy_board(board);
-                            if(board_aux == NULL){
-                                return 1;
-                            }
-
-                            for (int i = 0; i < 7; i++){
-                                buffer_jewels[i] = rand_jewel(level);
-                            }
-                        }
-                        break;
-                    case ALLEGRO_KEY_C:
-                        if (state == MENU)
-                        break;
-                    case ALLEGRO_KEY_S:
-                        if (state == MENU && help == 1)
-                            snap = !snap;
-                        if (state == NEUTRO && snap == 1 ){
-                            for (int i = 0; i < 4; i++){
-                                for (int j = 0; j < 8; j++){
-                                    board_aux[j][i] = -1;
-                                }
-                                
-                            }
-                            printf_board(board_aux);
-                            queda_pri = malloc(sizeof(int)*8);
-                            if (queda_pri == NULL)
-                                return 1;
-
-                            queda_aux = malloc(sizeof(int)*8);
-                            if (queda_aux == NULL)
-                                return 1;
-                            queda_pri[0] = 1;
-                            queda_pri[1] = 1;
-                            queda_pri[2] = 1;
-                            queda_pri[3] = 1;
-                            queda_pri[4] = 0;
-                            queda_pri[5] = 0;
-                            queda_pri[6] = 0;
-                            queda_pri[7] = 0;
-                            queda_aux[0] = 8;
-                            queda_aux[3] = 8;
-                            queda_aux[1] = 8;
-                            queda_aux[2] = 8;
-                            queda_aux[4] = 0;
-                            queda_aux[5] = 0;
-                            queda_aux[6] = 0;
-                            queda_aux[7] = 0;
-                            pontos += 320;
-                            al_play_sample(destroi_sound, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-                            state = DESTROI;
-                            redraw = false;
-                        }
-
-                        break;
-                    
-                    case ALLEGRO_KEY_R:
-                        if (state == MENU){
-                            rank = !rank;
-                            help = 0;
-                        }
-                        if (state == FIM){
-                            state = MENU;
-                        }
-                        
-                        break;
-                    case ALLEGRO_KEY_ESCAPE:
-                        if (state == NEUTRO){
-                            state = MENU;
-                            help = 0;
-                            rank = 0;
-                        }
-                        else{
-                            done = true;
-                        }
-                    default:
-                        break;
-                    }
-
+                resolve_keybord(event.keyboard.keycode, &state,click, &rank, &help, &snap,  &animation_frame_counter, secret_sound,board, board_aux, buffer_jewels, &queda_pri,  &queda_aux, &done, &redraw, level);
+                redraw = true;
                 break;
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                 done = true;
@@ -790,15 +569,15 @@ int main(){
         }
 
         if(done){
-            free_board(board);
             break;
         }
+
         if(redraw && al_is_event_queue_empty(queue)){
             if (state == MENU){
-                draw_menu_screen(font,font_small,rank,help,scores,snap);
+                draw_menu_screen(font,font_small,rank,help,score_board,snap);
             }
             else{
-                draw_game_screen(font,font_small,pontos,scores,click,pos0,board,jewel_bitmap,help);
+                draw_game_screen(font,font_small,pontos,score_board,click,pos0,board,jewel_bitmap,help,state);
             }
 
             al_flip_display();
@@ -807,18 +586,33 @@ int main(){
         }
     }
 
-    
 
+    /* Liberando Memoria */
+    #ifdef DEBUGGER
+        printf("Liberando Memoria\n");
+    #endif
+
+    free_board(board);
+    free_board(board_aux);
+    free(score_board);
+
+    /* Musica */
     al_destroy_sample(move_sound);
     al_destroy_sample(destroi_sound);
     al_destroy_sample(default_music);
     al_destroy_sample(miss_sound);
     al_destroy_sample(fall_sound);
 
+    /* Bitmaps */
+    for(int i = 0 ; i< 8;i++)
+        al_destroy_bitmap(jewel_bitmap[i]);
+
+    /* Allegro */
     al_destroy_font(font);
+    al_destroy_font(font_small);
     al_destroy_display(disp);
     al_destroy_timer(timer);
     al_destroy_event_queue(queue);
 
     return 0;
-    }
+}
